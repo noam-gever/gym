@@ -473,6 +473,8 @@ svg text{font-family:'Rubik',sans-serif}
 <script>
 /* ================= קבועים ================= */
 const KEY='noam-gym-v2', OLDKEY='noam-gym-v1';
+const DEFAULT_API='https://script.google.com/macros/s/AKfycbwqn2M2wbh2C3aVQ33KUDAXcp3KR1RNBytZSTUcirA1Poo2KeaRhzCS5X2kLJpoDSgpkg/exec';
+const DEFAULT_TOKEN='noam-gym-fd23e6f115111f3a';
 const MUSCLES=['חזה','גב','כתפיים','יד קדמית','יד אחורית','רגליים','בטן'];
 const DAYS=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
 const MONTHS=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
@@ -520,10 +522,19 @@ function newId(){ return (crypto.randomUUID?crypto.randomUUID():('id'+Date.now()
 function load(){
   try{
     const raw=localStorage.getItem(KEY);
-    if(raw){ const s=JSON.parse(raw); if(!s.records)s.records={}; return s; }
+    if(raw){
+      const s=JSON.parse(raw); if(!s.records)s.records={};
+      /* שדרוג שקט: אם אין חיבור ענן שמור — מפעילים את ברירת המחדל ומעלים הכל */
+      if(!s.settings.api){
+        s.settings.api=DEFAULT_API; s.settings.token=DEFAULT_TOKEN;
+        s.outbox=s.outbox||[];
+        Object.keys(s.records).forEach(id=>{ if(!s.outbox.includes(id)) s.outbox.push(id); });
+      }
+      return s;
+    }
   }catch(e){}
   /* התחלה חדשה או הגירה מגרסה 1 */
-  const s={version:2, settings:{rest:150, step:2.5, sound:true, api:'', token:''}, records:{}, outbox:[]};
+  const s={version:2, settings:{rest:150, step:2.5, sound:true, api:DEFAULT_API, token:DEFAULT_TOKEN}, records:{}, outbox:['plan']};
   s.records['plan']={id:'plan', updatedAt:Date.now(), deleted:false, data:{type:'plan', ...JSON.parse(JSON.stringify(DEFAULT_PLAN))}};
   let migrated=false;
   try{
@@ -544,6 +555,7 @@ function load(){
     const id=newId();
     s.records[id]={id, updatedAt:Date.now(), deleted:false, data:JSON.parse(JSON.stringify(SEED_WORKOUT))};
   }
+  Object.keys(s.records).forEach(id=>{ if(!s.outbox.includes(id)) s.outbox.push(id); });
   return s;
 }
 function guessMuscle(n){
