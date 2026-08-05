@@ -530,6 +530,7 @@ function load(){
         s.outbox=s.outbox||[];
         Object.keys(s.records).forEach(id=>{ if(!s.outbox.includes(id)) s.outbox.push(id); });
       }
+      migrate_(s);
       return s;
     }
   }catch(e){}
@@ -552,11 +553,29 @@ function load(){
     }
   }catch(e){}
   if(!migrated){
-    const id=newId();
-    s.records[id]={id, updatedAt:Date.now(), deleted:false, data:JSON.parse(JSON.stringify(SEED_WORKOUT))};
+    s.records['seed-2026-08-05']={id:'seed-2026-08-05', updatedAt:Date.now(), deleted:false, data:JSON.parse(JSON.stringify(SEED_WORKOUT))};
   }
   Object.keys(s.records).forEach(id=>{ if(!s.outbox.includes(id)) s.outbox.push(id); });
+  migrate_(s);
   return s;
+}
+/* איחוד כפילויות של אימון הפתיחה (5.8) — כל מכשיר יצר בעבר עותק עם מזהה אחר */
+function migrate_(s){
+  s.outbox=s.outbox||[];
+  const dups=Object.values(s.records).filter(r=>!r.deleted&&r.data&&r.data.type==='w'
+    &&r.data.date==='2026-08-05'&&r.data.planId==='A'&&r.id!=='seed-2026-08-05');
+  if(dups.length){
+    if(!s.records['seed-2026-08-05']||s.records['seed-2026-08-05'].deleted){
+      s.records['seed-2026-08-05']={id:'seed-2026-08-05', updatedAt:Date.now(), deleted:false, data:dups[0].data};
+      if(!s.outbox.includes('seed-2026-08-05')) s.outbox.push('seed-2026-08-05');
+    }
+    dups.forEach(r=>{ r.deleted=true; r.updatedAt=Date.now(); if(!s.outbox.includes(r.id)) s.outbox.push(r.id); });
+  }
+  /* מעבר למבנה גיליונות חדש — העלאה מלאה חד-פעמית */
+  if(s.syncV!==2){
+    s.syncV=2;
+    Object.keys(s.records).forEach(id=>{ if(!s.outbox.includes(id)) s.outbox.push(id); });
+  }
 }
 function guessMuscle(n){
   for(const w of DEFAULT_PLAN.workouts) for(const e of w.ex) if(e.n===n) return e.m;
