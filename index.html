@@ -7,9 +7,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0c0c0e">
 <title>האימון של נעם</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<!-- פונט לא חוסם — האפליקציה נטענת מיד גם בלי אינטרנט -->
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"></noscript>
 <style>
 :root{
   --bg:#0c0c0e; --card:#17171a; --card2:#1e1e23; --line:#2a2a30;
@@ -23,10 +27,14 @@ body{
   background:var(--bg); color:var(--txt);
   font-family:'Rubik',-apple-system,'Segoe UI',sans-serif;
   min-height:100vh; overscroll-behavior-y:contain;
-  background-image:radial-gradient(1200px 500px at 50% -200px, rgba(255,68,56,.07), transparent 60%);
+  background-image:
+    radial-gradient(1100px 480px at 85% -180px, rgba(255,68,56,.12), transparent 60%),
+    radial-gradient(800px 400px at -10% 15%, rgba(77,163,255,.05), transparent 60%);
   -webkit-font-smoothing:antialiased;
   user-select:none; -webkit-user-select:none;
 }
+.screen.on{animation:fadein .25s ease}
+@keyframes fadein{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
 input,textarea{user-select:text;-webkit-user-select:text}
 .num{font-variant-numeric:tabular-nums; direction:ltr; unicode-bidi:isolate}
 button{font-family:inherit; color:inherit; background:none; border:none; cursor:pointer; touch-action:manipulation}
@@ -38,7 +46,7 @@ input,select{font-family:inherit}
 /* ===== בית ===== */
 .brand{display:flex; align-items:center; justify-content:space-between; margin-bottom:2px}
 .brand h1{font-size:1.85rem; font-weight:900; letter-spacing:-.5px}
-.brand h1 em{color:var(--red); font-style:normal}
+.brand h1 em{font-style:normal; background:linear-gradient(120deg,#ff6b54,var(--red)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent}
 .brand .gear{font-size:1.4rem; padding:8px; opacity:.85}
 .subhead{display:flex; justify-content:space-between; align-items:center; margin-bottom:16px}
 .today-date{color:var(--dim); font-size:.92rem}
@@ -49,12 +57,13 @@ input,select{font-family:inherit}
 #sync-chip.off{color:var(--ghost)}
 
 .hero{
-  background:linear-gradient(145deg,#1c1c20,#131316);
-  border:1px solid var(--line); border-radius:var(--radius);
+  background:linear-gradient(150deg,#221a19 0%,#1c1c20 35%,#131316 100%);
+  border:1px solid rgba(255,68,56,.22); border-radius:22px;
   padding:20px; margin-bottom:14px; position:relative; overflow:hidden;
+  box-shadow:0 10px 34px rgba(0,0,0,.35);
 }
-.hero::before{content:""; position:absolute; inset-inline-start:-40px; top:-40px; width:140px; height:140px;
-  background:radial-gradient(circle, rgba(255,68,56,.18), transparent 70%);}
+.hero::before{content:""; position:absolute; inset-inline-start:-50px; top:-60px; width:220px; height:220px;
+  background:radial-gradient(circle, rgba(255,68,56,.22), transparent 70%);}
 .hero .label{color:var(--dim); font-size:.85rem; font-weight:500; margin-bottom:6px}
 .hero .wname{font-size:1.45rem; font-weight:800; margin-bottom:3px}
 .hero .wmeta{color:var(--dim); font-size:.88rem; margin-bottom:16px}
@@ -69,7 +78,7 @@ input,select{font-family:inherit}
 .alt-workouts button{flex:1; background:var(--card2); border:1px solid var(--line); border-radius:12px; padding:10px 6px; font-size:.83rem; font-weight:600; color:var(--dim)}
 
 .stat-row{display:flex; gap:10px; margin-bottom:14px}
-.stat{flex:1; background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:13px 10px; text-align:center}
+.stat{flex:1; background:linear-gradient(180deg,var(--card2),var(--card)); border:1px solid var(--line); border-radius:var(--radius); padding:13px 10px; text-align:center}
 .stat .v{font-size:1.45rem; font-weight:900}
 .stat .v .fire{font-size:1.05rem}
 .stat .k{color:var(--dim); font-size:.75rem; margin-top:2px; font-weight:500}
@@ -78,8 +87,10 @@ input,select{font-family:inherit}
 .panel h3{font-size:1rem; font-weight:700; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center}
 .panel h3 .more{color:var(--red); font-size:.85rem; font-weight:600}
 
-.quick-row{display:flex; gap:8px; margin-bottom:14px; overflow-x:auto; padding-bottom:2px}
-.quick-row button{flex-shrink:0; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:11px 15px; font-size:.85rem; font-weight:600; color:var(--txt)}
+.quick-row{display:flex; gap:8px; margin-bottom:14px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none}
+.quick-row::-webkit-scrollbar{display:none}
+.quick-row button{flex-shrink:0; background:linear-gradient(180deg,var(--card2),var(--card)); border:1px solid var(--line); border-radius:20px; padding:11px 15px; font-size:.85rem; font-weight:600; color:var(--txt); transition:transform .1s}
+.quick-row button:active{transform:scale(.94)}
 
 .cal{display:grid; grid-template-columns:repeat(7,1fr); gap:6px}
 .cal .dh{color:var(--ghost); font-size:.68rem; text-align:center; font-weight:500}
@@ -122,29 +133,29 @@ input,select{font-family:inherit}
 .target-chip.beat{background:rgba(255,201,60,.1); border-color:rgba(255,201,60,.3); color:var(--gold)}
 .exbtns{display:flex; gap:2px}
 .exbtns button{color:var(--ghost); font-size:1.05rem; padding:4px 5px}
-.exnote{width:100%; background:var(--card2); border:1px solid var(--line); border-radius:10px; color:var(--txt); font-size:.9rem; padding:10px; margin-top:10px; resize:none; display:none}
+.exnote{width:100%; background:var(--card2); border:1px solid var(--line); border-radius:10px; color:var(--txt); font-size:16px; padding:10px; margin-top:10px; resize:none; display:none}
 .exnote.show{display:block}
 
-.sethead{display:grid; grid-template-columns:24px 44px 1fr 1fr 48px; gap:5px; margin:12px 0 6px; align-items:center}
+.sethead{display:grid; grid-template-columns:28px 1fr 1fr 48px; gap:7px; margin:12px 0 6px; align-items:center}
 .sethead div{color:var(--ghost); font-size:.68rem; text-align:center; font-weight:500}
-.setrow{display:grid; grid-template-columns:24px 44px 1fr 1fr 48px; gap:5px; align-items:center; padding:5px 0}
+.setrow{display:grid; grid-template-columns:28px 1fr 1fr 48px; gap:7px; align-items:center; padding:5px 0}
 .setrow.done .stepper{opacity:.55}
-.setnum{text-align:center; color:var(--dim); font-weight:700; font-size:.85rem; width:26px; height:30px; line-height:30px; border-radius:9px; background:var(--card2); margin:0 auto; transition:.15s}
+.setnum{text-align:center; color:var(--dim); font-weight:700; font-size:.85rem; width:28px; height:36px; line-height:36px; border-radius:10px; background:var(--card2); margin:0 auto; transition:.15s}
 .setnum.t-W{color:#0c0c0e; background:var(--gold)}
 .setnum.t-D{color:#fff; background:var(--purple)}
 .setnum.t-F{color:#fff; background:var(--red)}
 .prev{color:var(--ghost); font-size:.78rem; text-align:center}
 .stepper{display:flex; align-items:center; background:var(--card2); border:1px solid var(--line); border-radius:12px; overflow:hidden; height:46px}
-.stepper button{width:24px; height:100%; font-size:1.05rem; color:var(--dim); font-weight:600; flex-shrink:0}
+.stepper button{width:34px; height:100%; font-size:1.1rem; color:var(--dim); font-weight:600; flex-shrink:0}
 .stepper button:active{background:rgba(255,255,255,.06); color:var(--txt)}
-.stepper input{flex:1; width:100%; min-width:0; background:none; border:none; color:var(--txt); font-size:.95rem; font-weight:700; text-align:center; outline:none; padding:0; font-variant-numeric:tabular-nums}
+.stepper input{flex:1; width:100%; min-width:0; background:none; border:none; color:var(--txt); font-size:16px; font-weight:700; text-align:center; outline:none; padding:0; font-variant-numeric:tabular-nums}
 .chk{width:48px; height:46px; border-radius:12px; background:var(--card2); border:1px solid var(--line); font-size:1.2rem; color:var(--ghost); display:flex; align-items:center; justify-content:center; transition:all .15s; margin:0 auto}
 .chk.on{background:var(--green); border-color:var(--green); color:#08120c; box-shadow:0 0 14px rgba(61,220,132,.4)}
 .addset{color:var(--dim); font-size:.85rem; font-weight:600; padding:9px 4px 2px; display:inline-block}
 .addset + .addset{margin-inline-start:14px}
 .type-hint{color:var(--ghost); font-size:.7rem; margin-top:8px}
 .wnote-wrap{margin-bottom:14px}
-.wnote-wrap textarea{width:100%; background:var(--card); border:1px solid var(--line); border-radius:12px; color:var(--txt); font-size:.9rem; padding:11px; resize:none}
+.wnote-wrap textarea{width:100%; background:var(--card); border:1px solid var(--line); border-radius:12px; color:var(--txt); font-size:16px; padding:11px; resize:none}
 
 /* טיימר מנוחה */
 #restbar{
@@ -157,6 +168,8 @@ input,select{font-family:inherit}
 }
 #restbar.show{display:flex; transform:translateY(0)}
 #restbar.overtime #resttime{color:var(--red)}
+#restbar.overtime{animation:rflash 1s ease-in-out infinite}
+@keyframes rflash{0%,100%{background:rgba(20,20,24,.97)}50%{background:rgba(120,25,20,.97)}}
 #restbar .rt-label{font-size:.75rem; color:var(--dim); font-weight:500}
 #resttime{font-size:2.1rem; font-weight:900; letter-spacing:1px; line-height:1}
 #restbar .rt-btn{background:var(--card2); border:1px solid var(--line); border-radius:12px; padding:12px 13px; font-size:.9rem; font-weight:700; color:var(--txt); min-width:54px}
@@ -212,7 +225,7 @@ input,select{font-family:inherit}
 
 /* משקל גוף */
 .bw-add{display:flex; gap:8px; margin-bottom:14px}
-.bw-add input{flex:1; background:var(--card2); border:1px solid var(--line); border-radius:12px; color:var(--txt); font-size:1rem; font-weight:700; text-align:center; padding:12px; outline:none}
+.bw-add input{flex:1; background:var(--card2); border:1px solid var(--line); border-radius:12px; color:var(--txt); font-size:16px; font-weight:700; text-align:center; padding:12px; outline:none}
 .bw-add button{background:var(--red); color:#fff; border-radius:12px; padding:12px 20px; font-weight:700}
 
 /* ===== הגדרות ===== */
@@ -225,11 +238,11 @@ input,select{font-family:inherit}
 .toggle::after{content:""; position:absolute; top:2px; inset-inline-start:3px; width:24px; height:24px; border-radius:50%; background:var(--dim); transition:.2s}
 .toggle.on{background:var(--red)}
 .toggle.on::after{background:#fff; transform:translateX(-21px)}
-.sync-inp{width:100%; background:var(--card2); border:1px solid var(--line); border-radius:10px; color:var(--txt); font-size:.8rem; padding:11px; margin-top:8px; outline:none; direction:ltr; text-align:left}
+.sync-inp{width:100%; background:var(--card2); border:1px solid var(--line); border-radius:10px; color:var(--txt); font-size:16px; padding:11px; margin-top:8px; outline:none; direction:ltr; text-align:left}
 
 /* עורך תוכנית */
 .pe-ex{background:var(--card2); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:10px}
-.pe-ex input,.pe-ex select{background:var(--card); border:1px solid var(--line); border-radius:8px; color:var(--txt); font-size:.85rem; padding:8px; outline:none}
+.pe-ex input,.pe-ex select{background:var(--card); border:1px solid var(--line); border-radius:8px; color:var(--txt); font-size:16px; padding:8px; outline:none}
 .pe-name{width:100%; margin-bottom:8px; font-weight:600}
 .pe-grid{display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:6px; margin-bottom:8px}
 .pe-grid label{font-size:.68rem; color:var(--ghost); display:block; margin-bottom:3px}
@@ -242,7 +255,7 @@ input,select{font-family:inherit}
 /* מודאלים */
 #modal{position:fixed; inset:0; z-index:60; background:rgba(0,0,0,.7); display:none; align-items:flex-end; justify-content:center}
 #modal.show{display:flex}
-.sheet{background:var(--card); border-radius:24px 24px 0 0; width:100%; max-width:560px; padding:24px 20px calc(env(safe-area-inset-bottom) + 22px); animation:up .3s cubic-bezier(.2,.9,.3,1.1); max-height:85vh; overflow-y:auto}
+.sheet{background:var(--card); border-radius:24px 24px 0 0; width:100%; max-width:560px; padding:24px 20px calc(env(safe-area-inset-bottom) + 22px); animation:up .3s cubic-bezier(.2,.9,.3,1.1); max-height:85vh; overflow-y:auto; overscroll-behavior:contain}
 @keyframes up{from{transform:translateY(60%)}to{transform:translateY(0)}}
 .sheet h2{font-size:1.35rem; font-weight:900; margin-bottom:4px}
 .sheet .sub{color:var(--dim); font-size:.9rem; margin-bottom:16px}
@@ -327,7 +340,7 @@ svg text{font-family:'Rubik',sans-serif}
     <button class="quit" onclick="confirmQuit()">✕</button>
     <div style="text-align:center">
       <div class="wt-name" id="w-title"></div>
-      <div class="wt-meta"><span class="num" id="w-clock">0:00</span> · <span id="w-sets">0 סטים</span></div>
+      <div class="wt-meta"><span class="num" id="w-clock">0:00</span> · <span id="w-sets">0 סטים</span><span id="top-rest" style="color:var(--red); font-weight:700"></span></div>
     </div>
     <button class="finish" onclick="finishWorkout()">סיום</button>
   </div>
@@ -464,8 +477,8 @@ svg text{font-family:'Rubik',sans-serif}
     <div id="resttime" class="num">2:00</div>
   </div>
   <div style="display:flex; gap:8px; align-items:center">
-    <button class="rt-btn num" onclick="restAdd(-15)">15-</button>
-    <button class="rt-btn num" onclick="restAdd(15)">15+</button>
+    <button class="rt-btn num" onclick="restAdd(-15)">−15</button>
+    <button class="rt-btn num" onclick="restAdd(15)">+15</button>
     <button class="rt-skip" onclick="restStop()">דלג</button>
   </div>
 </div>
@@ -524,8 +537,8 @@ function load(){
     const raw=localStorage.getItem(KEY);
     if(raw){
       const s=JSON.parse(raw); if(!s.records)s.records={};
-      /* שדרוג שקט: אם אין חיבור ענן שמור — מפעילים את ברירת המחדל ומעלים הכל */
-      if(!s.settings.api){
+      /* שדרוג שקט: רק אם החיבור מעולם לא הוגדר — מפעילים ברירת מחדל. ריקון מכוון ('') מכובד */
+      if(s.settings.api===undefined||s.settings.api===null){
         s.settings.api=DEFAULT_API; s.settings.token=DEFAULT_TOKEN;
         s.outbox=s.outbox||[];
         Object.keys(s.records).forEach(id=>{ if(!s.outbox.includes(id)) s.outbox.push(id); });
@@ -595,28 +608,32 @@ function bodyWeights(){
     .map(r=>({rid:r.id, ...r.data})).sort((a,b)=>a.date<b.date?-1:1);
 }
 function putRecord(id, data){
-  S.records[id]={id, updatedAt:Date.now(), deleted:false, data};
+  S.records[id]={id, updatedAt:now_(), deleted:false, data};
   if(!S.outbox.includes(id)) S.outbox.push(id);
   save(); syncStatus(); flush();
 }
 function delRecord(id){
   const r=S.records[id]; if(!r) return;
-  r.deleted=true; r.updatedAt=Date.now();
+  r.deleted=true; r.updatedAt=now_();
   if(!S.outbox.includes(id)) S.outbox.push(id);
   save(); syncStatus(); flush();
 }
 
 /* ================= עזרים ================= */
 const $=id=>document.getElementById(id);
+const escH=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+const escJ=s=>escH(String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"));
+function openModal(){ $('modal').classList.add('show'); document.body.style.overflow='hidden'; }
 const fmtDate=d=>{const x=new Date(d+'T12:00'); return `יום ${DAYS[x.getDay()]}, ${x.getDate()} ב${MONTHS[x.getMonth()]}`;}
 const shortDate=d=>{const x=new Date(d+'T12:00'); return `${x.getDate()}.${x.getMonth()+1}`;}
-const todayStr=()=>{const t=new Date(); return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
+const localYMD=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const todayStr=()=>localYMD(new Date());
 const mmss=s=>{s=Math.max(0,Math.round(s)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
 const isWork=s=>(!s.t||s.t==='F')&&(s.r>0||s.w>0); /* סט עובד = רגיל או כשל */
 const vol=w=>w.ex.reduce((a,e)=>a+e.sets.reduce((b,s)=>b+((s.t==='W')?0:(s.w||0)*(s.r||0)),0),0);
 const e1rm=(w,r)=>r>0&&w>0?w*(1+Math.min(r,12)/30):0; /* Epley */
 function planById(id){ return plan().workouts.find(p=>p.id===id); }
-function weekStart(d){ const x=new Date(d+'T12:00'); x.setDate(x.getDate()-x.getDay()); return x.toISOString().slice(0,10); }
+function weekStart(d){ const x=new Date(d+'T12:00'); x.setDate(x.getDate()-x.getDay()); return localYMD(x); }
 
 function lastPerf(exName, excludeRid){
   const ws=workouts();
@@ -692,7 +709,7 @@ function weekStreakCount(){
   const ws=workouts(); if(!ws.length) return 0;
   const weeks=new Set(ws.map(h=>weekStart(h.date)));
   let streak=0, cur=weekStart(todayStr());
-  const back=w=>{const x=new Date(w+'T12:00'); x.setDate(x.getDate()-7); return x.toISOString().slice(0,10);}
+  const back=w=>{const x=new Date(w+'T12:00'); x.setDate(x.getDate()-7); return localYMD(x);}
   if(!weeks.has(cur)) cur=back(cur);
   while(weeks.has(cur)){ streak++; cur=back(cur); }
   return streak;
@@ -705,7 +722,7 @@ function renderCal(){
   const start=new Date(today); start.setDate(start.getDate()-start.getDay()-49);
   for(let i=0;i<56;i++){
     const d=new Date(start); d.setDate(d.getDate()+i);
-    const ds=d.toISOString().slice(0,10);
+    const ds=localYMD(d);
     const div=document.createElement('div'); div.className='d'; div.textContent=d.getDate();
     if(byDate[ds]){ div.classList.add('done'); div.onclick=()=>viewWorkout(byDate[ds]); }
     if(ds===todayStr()) div.classList.add('today');
@@ -755,6 +772,28 @@ function deleteWorkoutUi(rid){
 
 /* ================= אימון פעיל ================= */
 let W=null, clockInt=null, wakeLock=null;
+/* שמירת טיוטת אימון — שלא ייאבד אם iOS סוגר את האפליקציה באמצע */
+const DRAFT_KEY='noam-gym-draft';
+function saveDraft(){
+  if(W&&W.start&&!W.editRid){
+    try{ localStorage.setItem(DRAFT_KEY, JSON.stringify({...W, note:$('w-note')?$('w-note').value:''})); }catch(e){}
+  }
+}
+function clearDraft(){ try{ localStorage.removeItem(DRAFT_KEY); }catch(e){} }
+function tryResumeDraft(){
+  try{
+    const raw=localStorage.getItem(DRAFT_KEY); if(!raw) return;
+    const d=JSON.parse(raw);
+    if(d.date!==todayStr()){ clearDraft(); return; } /* טיוטה מאתמול — לא רלוונטית */
+    const doneCount=d.ex.reduce((a,e)=>a+e.sets.filter(s=>s.done).length,0);
+    if(!doneCount){ clearDraft(); return; }
+    if(confirm(`יש אימון שלא הסתיים (${doneCount} סטים מסומנים). להמשיך אותו?`)){
+      W=d;
+      const p=planById(W.planId);
+      openWorkoutScreen(p?p.name:'אימון');
+    } else clearDraft();
+  }catch(e){ clearDraft(); }
+}
 
 function startWorkout(planId){
   const p=planById(planId);
@@ -768,6 +807,13 @@ function startWorkout(planId){
         let w0=prev?prev.w:0, r0=prev?prev.r:0;
         if(tgt&&tgt.up){ w0=tgt.w; r0=pe.lo||r0; }
         sets.push({w:w0, r:r0, t:'', done:false, prev});
+      }
+      /* סט חימום אוטומטי — חצי מהמשקל של הסט הראשון, מעוגל יפה */
+      const firstW=sets.length?sets[0].w:0;
+      if(firstW>0){
+        let half=firstW/2;
+        half=half>=10?Math.round(half/2.5)*2.5:Math.round(half*2)/2;
+        sets.unshift({w:half, r:10, t:'W', done:false, prev:null});
       }
       return {n:pe.n, m:pe.m, lo:pe.lo, hi:pe.hi, planSets:pe.sets, rest:pe.rest, coachNote:pe.note,
               note:'', lastNote:last?last.note:'', lastDate:last?last.date:null, tgt, sets};
@@ -803,7 +849,7 @@ function renderWorkout(title){
   $('w-exercises').innerHTML=W.ex.map((e,ei)=>{
     const lastTxt=e.lastDate?`פעם קודמת (${shortDate(e.lastDate)}): ${e.sets.filter(s=>s.prev).map(s=>`<span class="num">${s.prev.w}×${s.prev.r}</span>`).join(' · ')||'—'}`:(W.editRid?'':'אין היסטוריה — אימון ראשון!');
     let tgtHtml='';
-    if(e.tgt&&e.tgt.up) tgtHtml=`<div class="target-chip">🎯 הגעת לתקרה! היום: <span class="num">${e.tgt.w}</span> ק"ג × <span class="num">${e.lo||''}</span>+</div>`;
+    if(e.tgt&&e.tgt.up) tgtHtml=`<div class="target-chip">🎯 הגעת לתקרה! היום: <span class="num">${e.tgt.w}</span> ק"ג × <span class="num">${e.lo?e.lo+'+':''}</span></div>`;
     else if(e.tgt&&e.tgt.w>0&&e.hi) tgtHtml=`<div class="target-chip beat">🎯 לנצח את הפעם הקודמת</div>`;
     return `<div class="excard" id="ex${ei}">
       <div class="exhead">
@@ -820,8 +866,8 @@ function renderWorkout(title){
           <button onclick="toggleNote(${ei})">📝</button>
         </div>
       </div>
-      <textarea class="exnote" id="note${ei}" rows="2" placeholder="הערה לתרגיל — תופיע לך גם באימון הבא" oninput="W.ex[${ei}].note=this.value">${e.note}</textarea>
-      <div class="sethead"><div>סט</div><div>קודם</div><div>ק"ג</div><div>חזרות</div><div></div></div>
+      <textarea class="exnote" id="note${ei}" rows="2" placeholder="הערה לתרגיל — תופיע לך גם באימון הבא" oninput="W.ex[${ei}].note=this.value; saveDraft()">${e.note}</textarea>
+      <div class="sethead"><div>סט</div><div>ק"ג</div><div>חזרות</div><div></div></div>
       ${e.sets.map((s,si)=>setRowHtml(ei,si)).join('')}
       <button class="addset" onclick="addSet(${ei})">+ הוסף סט</button>
     </div>`;
@@ -833,11 +879,10 @@ function setRowHtml(ei,si){
   const label=s.t==='W'?'W':(s.t==='D'?'D':(s.t==='F'?'F':workNum));
   return `<div class="setrow ${s.done?'done':''}" id="row${ei}-${si}">
     <button class="setnum ${s.t?'t-'+s.t:''}" onclick="cycleType(${ei},${si})">${label}</button>
-    <div class="prev num">${s.prev?s.prev.w+'×'+s.prev.r:'—'}</div>
     <div class="stepper">
       <button onclick="bump(${ei},${si},'w',1)">+</button>
       <input type="text" inputmode="decimal" value="${s.w||''}" placeholder="0" id="w${ei}-${si}"
-        onfocus="this.select()" oninput="W.ex[${ei}].sets[${si}].w=parseFloat(this.value)||0">
+        onfocus="this.select()" oninput="W.ex[${ei}].sets[${si}].w=parseFloat(this.value.replace(',','.'))||0">
       <button onclick="bump(${ei},${si},'w',-1)">−</button>
     </div>
     <div class="stepper">
@@ -853,7 +898,7 @@ function cycleType(ei,si){
   const order=['','W','D','F'];
   const s=W.ex[ei].sets[si];
   s.t=order[(order.indexOf(s.t)+1)%order.length];
-  refreshRows(ei);
+  refreshRows(ei); saveDraft();
 }
 function refreshRows(ei){
   const e=W.ex[ei];
@@ -870,24 +915,31 @@ function bump(ei,si,f,dir){
   if(f==='w') s.w=Math.max(0, Math.round(((s.w||0)+dir*S.settings.step)*100)/100);
   else s.r=Math.max(0,(s.r||0)+dir);
   $((f==='w'?'w':'r')+ei+'-'+si).value=s[f==='w'?'w':'r']||'';
+  saveDraft();
 }
 function toggleNote(ei){ $('note'+ei).classList.toggle('show'); }
 function addSet(ei){
   const e=W.ex[ei];
   const lastSet=e.sets[e.sets.length-1];
   e.sets.push({w:lastSet?lastSet.w:0, r:lastSet?lastSet.r:0, t:'', done:false, prev:null});
-  renderWorkout();
+  renderWorkout(); saveDraft();
 }
 function toggleSet(ei,si){
   const s=W.ex[ei].sets[si];
   unlockAudio();
   if(!s.done){
-    s.w=parseFloat($('w'+ei+'-'+si).value)||(s.prev?s.prev.w:0)||0;
-    s.r=parseInt($('r'+ei+'-'+si).value)||(s.prev?s.prev.r:0)||0;
+    /* 0 שהוקלד בכוונה נשאר 0 — רק שדה ריק לוקח מהפעם הקודמת */
+    const wv=parseFloat($('w'+ei+'-'+si).value.replace(',','.'));
+    const rv=parseInt($('r'+ei+'-'+si).value);
+    s.w=Number.isNaN(wv)?((s.prev?s.prev.w:0)||0):wv;
+    s.r=Number.isNaN(rv)?((s.prev?s.prev.r:0)||0):rv;
     $('w'+ei+'-'+si).value=s.w||''; $('r'+ei+'-'+si).value=s.r||'';
     s.done=true;
     if(s.t!=='W'&&s.r>0&&!W.editRid){
-      const mW=maxWeight(W.ex[ei].n), mR=maxReps(W.ex[ei].n);
+      /* שיא = מעל ההיסטוריה וגם מעל הסטים שכבר בוצעו באימון הזה */
+      const sessionBestW=Math.max(0,...W.ex[ei].sets.filter(x=>x.done&&x!==s&&x.t!=='W').map(x=>x.w||0));
+      const sessionBestR=Math.max(0,...W.ex[ei].sets.filter(x=>x.done&&x!==s&&x.t!=='W').map(x=>x.r||0));
+      const mW=Math.max(maxWeight(W.ex[ei].n), sessionBestW), mR=Math.max(maxReps(W.ex[ei].n), sessionBestR);
       if(s.w>mW&&mW>0){ addPr(`${W.ex[ei].n} — ${s.w} ק"ג (שיא משקל)`); celebrate(`🏆 שיא משקל! ${W.ex[ei].n} — ${s.w} ק"ג`); }
       else if(s.w===0&&s.r>mR&&mR>0){ addPr(`${W.ex[ei].n} — ${s.r} חזרות (שיא)`); celebrate(`🏆 שיא חזרות! ${W.ex[ei].n} — ${s.r}`); }
     }
@@ -897,7 +949,7 @@ function toggleSet(ei,si){
   row.classList.toggle('done',s.done);
   row.querySelector('.chk').classList.toggle('on',s.done);
   $('ex'+ei).classList.toggle('done-all', W.ex[ei].sets.every(x=>x.done));
-  updSetCount();
+  updSetCount(); saveDraft();
 }
 function addPr(txt){
   const base=txt.split(' — ')[0];
@@ -910,7 +962,7 @@ function updSetCount(){
   $('w-sets').innerHTML=`<span class="num">${d}/${t}</span> סטים`;
 }
 function confirmQuit(){
-  if(confirm(W.editRid?'לצאת בלי לשמור שינויים?':'לצאת בלי לשמור את האימון?')){ stopWorkoutTimers(); W=null; go('home'); }
+  if(confirm(W.editRid?'לצאת בלי לשמור שינויים?':'לצאת בלי לשמור את האימון?')){ stopWorkoutTimers(); clearDraft(); W=null; go('home'); }
 }
 function stopWorkoutTimers(){ clearInterval(clockInt); restStop(); if(wakeLock){ wakeLock.release().catch(()=>{}); wakeLock=null; } }
 
@@ -924,6 +976,8 @@ function finishWorkout(){
   const rid=W.editRid||newId();
   const entry={type:'w', date:W.date, planId:W.planId, dur, note:$('w-note').value.trim(), ex:done, prs:W.prs};
   putRecord(rid, entry);
+  W.editRid=rid; W.origDur=dur; /* לחיצה כפולה על "סיום" מעדכנת במקום ליצור כפילות */
+  clearDraft();
   stopWorkoutTimers();
   showSummary(rid, entry);
 }
@@ -942,10 +996,10 @@ function showSummary(rid, entry){
       <button class="btn-sec" onclick="closeModal(); shareCard('${rid}')">📤 שיתוף</button>
       <button class="btn-main btn-go" onclick="closeModal(); W=null; go('home')">מעולה!</button>
     </div>`;
-  $('modal').classList.add('show');
+  openModal();
   if(entry.prs&&entry.prs.length) confettiBurst();
 }
-function closeModal(){ $('modal').classList.remove('show'); }
+function closeModal(){ $('modal').classList.remove('show'); document.body.style.overflow=''; }
 
 /* ================= מחשבון פלטות ================= */
 let plateBar=20, plateEi=0;
@@ -954,7 +1008,7 @@ function openPlates(ei){
   const e=W.ex[ei];
   const firstUndone=e.sets.find(s=>!s.done)||e.sets[0];
   renderPlates(firstUndone?firstUndone.w:0);
-  $('modal').classList.add('show');
+  openModal();
 }
 function renderPlates(target){
   const PL=[{w:25,c:'#e0413b',h:76},{w:20,c:'#3968c9',h:76},{w:15,c:'#e8b83a',h:70},{w:10,c:'#3aa457',h:62},{w:5,c:'#eee',h:50},{w:2.5,c:'#888',h:40},{w:1.25,c:'#666',h:32}];
@@ -989,19 +1043,24 @@ function restStart(sec){
   clearInterval(restInt); restInt=setInterval(tickRest,250); tickRest();
 }
 function restAdd(s){ restEnd+=s*1000; tickRest(); }
-function restStop(){ clearInterval(restInt); restInt=null; $('restbar').classList.remove('show'); }
+function restStop(){ clearInterval(restInt); restInt=null; $('restbar').classList.remove('show'); const t=$('top-rest'); if(t) t.textContent=''; }
 function tickRest(){
   if(!restInt) return;
   const left=(restEnd-Date.now())/1000;
+  const topEl=$('top-rest');
   if(left<=0){
     $('restbar').classList.add('overtime');
     $('resttime').textContent='+'+mmss(-left);
+    if(topEl) topEl.textContent=' · ⏱ עבר הזמן!';
     if(!beeped){ beeped=true; beep(); if(navigator.vibrate) navigator.vibrate([200,100,200]); }
     if(left<-90) restStop();
-  } else $('resttime').textContent=mmss(left);
+  } else {
+    $('resttime').textContent=mmss(left);
+    if(topEl) topEl.innerHTML=' · ⏱ <span class="num">'+mmss(left)+'</span>';
+  }
 }
 let AC=null;
-function unlockAudio(){ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(AC&&AC.state==='suspended') AC.resume().catch(()=>{}); }
+function unlockAudio(){ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(AC&&AC.state!=='running') AC.resume().catch(()=>{}); /* גם אחרי שיחה נכנסת (מצב interrupted) */ }
 function beep(){
   if(!S.settings.sound||!AC) return;
   try{
@@ -1046,7 +1105,7 @@ function renderChartList(){
   $('chart-exlist').innerHTML=allExerciseNames().map(n=>{
     const mw=maxWeight(n), mr=maxReps(n);
     const stat=mw>0?`<span class="num">${mw}</span> ק"ג`:(mr>0?`<span class="num">${mr}</span> חזרות`:'—');
-    return `<button onclick="showEx('${n.replace(/'/g,"\\'")}')">${n} <span>${stat}</span></button>`;
+    return `<button onclick="showEx('${escJ(n)}')">${escH(n)} <span>${stat}</span></button>`;
   }).join('');
 }
 let curEx='', curMetric='w';
@@ -1118,7 +1177,7 @@ function renderMuscles(weeksBack){
   $('mus-this').classList.toggle('act',weeksBack===0);
   $('mus-last').classList.toggle('act',weeksBack===1);
   const target=new Date(); target.setDate(target.getDate()-7*weeksBack);
-  const ws=weekStart(target.toISOString().slice(0,10));
+  const ws=weekStart(localYMD(target));
   const counts={}; MUSCLES.forEach(m=>counts[m]=0);
   workouts().filter(h=>weekStart(h.date)===ws).forEach(h=>h.ex.forEach(e=>{
     const m=e.m||guessMuscle(e.n);
@@ -1197,9 +1256,9 @@ function renderAch(){
 
 /* ================= משקל גוף ================= */
 function addBodyWeight(){
-  const v=parseFloat($('bw-input').value);
+  const v=parseFloat($('bw-input').value.replace(',','.'));
   if(!v||v<30||v>300){ alert('משקל לא תקין'); return; }
-  putRecord(newId(), {type:'bw', date:todayStr(), kg:v});
+  putRecord('bw-'+todayStr(), {type:'bw', date:todayStr(), kg:v}); /* מזהה לפי יום — עדכון באותו יום דורס */
   $('bw-input').value='';
   renderBody(); celebrate('⚖️ נשמר!');
 }
@@ -1227,14 +1286,14 @@ function renderPeTabs(){
   const w=peDraft.workouts.find(x=>x.id===peWid);
   $('pe-body').innerHTML=w.ex.map((e,i)=>`
     <div class="pe-ex">
-      <input class="pe-name" value="${e.n}" oninput="peSet(${i},'n',this.value)" placeholder="שם התרגיל">
+      <input class="pe-name" value="${escH(e.n)}" oninput="peSet(${i},'n',this.value)" placeholder="שם התרגיל">
       <div class="pe-grid">
         <div><label>שריר</label><select onchange="peSet(${i},'m',this.value)">${MUSCLES.map(m=>`<option ${e.m===m?'selected':''}>${m}</option>`).join('')}</select></div>
-        <div><label>סטים</label><input type="text" inputmode="numeric" value="${e.sets}" oninput="peSet(${i},'sets',parseInt(this.value)||3)"></div>
+        <div><label>סטים</label><input type="text" inputmode="numeric" value="${e.sets}" oninput="peSet(${i},'sets',this.value)"></div>
         <div><label>חזרות מ-</label><input type="text" inputmode="numeric" value="${e.lo||''}" oninput="peSet(${i},'lo',parseInt(this.value)||null)"></div>
         <div><label>עד</label><input type="text" inputmode="numeric" value="${e.hi||''}" oninput="peSet(${i},'hi',parseInt(this.value)||null)"></div>
       </div>
-      <input class="pe-note" value="${e.note||''}" oninput="peSet(${i},'note',this.value)" placeholder="הערת מאמן (תוצג בכל אימון)">
+      <input class="pe-note" value="${escH(e.note||'')}" oninput="peSet(${i},'note',this.value)" placeholder="הערת מאמן (תוצג בכל אימון)">
       <div class="pe-actions">
         <button onclick="peMove(${i},-1)">↑</button>
         <button onclick="peMove(${i},1)">↓</button>
@@ -1243,7 +1302,11 @@ function renderPeTabs(){
     </div>`).join('')+`<button class="addset" onclick="peAdd()">+ הוסף תרגיל</button>`;
 }
 function peEx(){ return peDraft.workouts.find(x=>x.id===peWid).ex; }
-function peSet(i,f,v){ peEx()[i][f]=v; }
+function peSet(i,f,v){
+  if(f==='n'||f==='note') v=String(v).replace(/[<>"]/g,'׳'); /* גרשיים כפולים שוברים תצוגה — מוחלפים בגרש עברי */
+  if(f==='sets') v=Math.max(1,Math.min(10,parseInt(v)||3));
+  peEx()[i][f]=v;
+}
 function peMove(i,d){ const ex=peEx(); const j=i+d; if(j<0||j>=ex.length) return; [ex[i],ex[j]]=[ex[j],ex[i]]; renderPeTabs(); }
 function peDel(i){ if(confirm('למחוק את התרגיל?')){ peEx().splice(i,1); renderPeTabs(); } }
 function peAdd(){ peEx().push({n:'', m:'חזה', sets:3, lo:8, hi:12, rest:150, note:''}); renderPeTabs(); }
@@ -1258,12 +1321,12 @@ function savePlanEdits(){
 async function shareCard(rid){
   const r=S.records[rid]; if(!r) return;
   const h=r.data; const p=planById(h.planId);
-  const cv=document.createElement('canvas'); cv.width=1000; cv.height=1200;
+  const cv=document.createElement('canvas'); cv.width=1000; cv.height=1400;
   const c=cv.getContext('2d');
   /* רקע */
-  const grd=c.createLinearGradient(0,0,0,1200);
+  const grd=c.createLinearGradient(0,0,0,1400);
   grd.addColorStop(0,'#1a1a1f'); grd.addColorStop(1,'#0c0c0e');
-  c.fillStyle=grd; c.fillRect(0,0,1000,1200);
+  c.fillStyle=grd; c.fillRect(0,0,1000,1400);
   c.fillStyle='rgba(255,68,56,.09)';
   c.beginPath(); c.arc(500,80,330,0,7); c.fill();
   c.direction='rtl'; c.textAlign='center';
@@ -1282,16 +1345,22 @@ async function shareCard(rid){
     c.fillStyle='#8e8e96'; c.font='500 28px Rubik, sans-serif'; c.fillText(s[1],x,410);
   });
   /* תרגילים */
-  let y=520;
+  let y=510;
   c.textAlign='right';
   h.ex.slice(0,8).forEach(e=>{
-    const best=e.sets.filter(s=>s.t!=='W').reduce((a,s)=>(s.w>((a&&a.w)||0)?s:a),null)||e.sets[0];
-    c.fillStyle='#f2f0ec'; c.font='600 34px Rubik, sans-serif';
-    c.fillText(e.n, 920, y);
-    c.textAlign='left'; c.direction='ltr'; c.font='700 34px Rubik, sans-serif'; c.fillStyle='#ff4438';
-    c.fillText(best?`${best.w}kg × ${best.r}`:'', 80, y);
-    c.textAlign='right'; c.direction='rtl';
-    y+=64;
+    /* שם התרגיל למעלה, כל הסטים בשורה מתחת — בלי התנגשויות */
+    c.fillStyle='#f2f0ec'; c.font='600 30px Rubik, sans-serif'; c.direction='rtl'; c.textAlign='right';
+    let name=e.n;
+    while(c.measureText(name).width>840&&name.length>3) name=name.slice(0,-2);
+    if(name!==e.n) name=name+'…';
+    c.fillText(name, 920, y);
+    const setsTxt=e.sets.filter(s=>s.t!=='W').map(s=>`${s.w}×${s.r}`).join('   ');
+    c.font='700 26px Rubik, sans-serif'; c.fillStyle='#ff4438'; c.direction='ltr'; c.textAlign='left';
+    let st=setsTxt;
+    while(c.measureText(st).width>840&&st.length>3) st=st.slice(0,-2);
+    c.fillText(st, 80, y+36);
+    c.direction='rtl'; c.textAlign='right';
+    y+=84;
   });
   /* שיאים */
   if(h.prs&&h.prs.length){
@@ -1299,7 +1368,7 @@ async function shareCard(rid){
     c.fillText('🏆 '+h.prs.length+' שיאים חדשים!', 500, y);
   }
   c.fillStyle='#5c5c64'; c.font='500 26px Rubik, sans-serif'; c.textAlign='center';
-  c.fillText('נבנה עם קלוד · נעם AI', 500, 1150);
+  c.fillText('נבנה עם קלוד · נעם AI', 500, 1360);
   cv.toBlob(async b=>{
     const file=new File([b],'אימון-'+h.date+'.png',{type:'image/png'});
     if(navigator.canShare&&navigator.canShare({files:[file]})){
@@ -1329,17 +1398,19 @@ function mergeIn(serverRecords){
       S.records[r.id]={id:r.id, updatedAt:r.updatedAt, deleted:!!r.deleted, data:r.data}; changed=true;
     }
   });
-  if(changed){ save(); if($('scr-home').classList.contains('on')) renderHome(); }
+  if(changed){ migrate_(S); save(); if($('scr-home').classList.contains('on')) renderHome(); }
 }
 async function flush(){
   if(flushing||!syncOn()||!S.outbox.length||!navigator.onLine) return;
   flushing=true;
+  const sent=[...S.outbox]; /* מה שנוסף בזמן השליחה — יישאר בתור לסבב הבא */
   try{
-    const payload={token:S.settings.token, records:S.outbox.map(id=>S.records[id]).filter(Boolean)};
+    const payload={token:S.settings.token, records:sent.map(id=>S.records[id]).filter(Boolean)};
     const res=await fetch(S.settings.api,{method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload)});
     const out=JSON.parse(await res.text());
     if(!out.ok) throw new Error(out.error);
-    S.outbox=[]; save(); mergeIn(out.records);
+    S.outbox=S.outbox.filter(id=>!sent.includes(id)); save(); mergeIn(out.records);
+    if(out.serverTime) updClock(out.serverTime);
     backoff=2000; lastSyncErr=false; syncStatus();
   }catch(e){
     lastSyncErr=true; syncStatus();
@@ -1348,15 +1419,20 @@ async function flush(){
     return;
   }
   flushing=false;
+  if(S.outbox.length) flush(); /* הצטבר עוד בזמן השליחה — שולחים מיד */
 }
 async function pull(){
   if(!syncOn()) return;
   try{
     const res=await fetch(S.settings.api+'?token='+encodeURIComponent(S.settings.token));
     const out=JSON.parse(await res.text());
-    if(out.ok){ mergeIn(out.records); lastSyncErr=false; syncStatus(); }
+    if(out.ok){ mergeIn(out.records); if(out.serverTime) updClock(out.serverTime); lastSyncErr=false; syncStatus(); }
   }catch(e){}
 }
+/* פיצוי על שעון מכשיר לא מכוון — חותמות הזמן מיושרות לשעון השרת */
+let clockOfs=0;
+function updClock(serverTime){ const ofs=serverTime-Date.now(); clockOfs=Math.abs(ofs)>60000?ofs:0; }
+function now_(){ return Date.now()+clockOfs; }
 function manualSync(){ if(!syncOn()){ go('settings'); return; } pull(); flush(); celebrate('☁️ מסנכרן...'); }
 window.addEventListener('online', flush);
 
@@ -1414,7 +1490,11 @@ function importFile(inp){
       const data=JSON.parse(rd.result);
       if(!data.records||!data.settings) throw 0;
       if(confirm(`לטעון גיבוי עם ${Object.keys(data.records).length} רשומות? יחליף את הנתונים הנוכחיים.`)){
-        S=data; save(); celebrate('✔ הגיבוי נטען!'); go('home');
+        S=data;
+        /* השחזור מקבל חותמת זמן חדשה + עולה לענן — אחרת מחיקות ישנות בענן ידרסו אותו מיד */
+        S.outbox=[];
+        Object.values(S.records).forEach(r=>{ r.updatedAt=now_(); S.outbox.push(r.id); });
+        save(); flush(); celebrate('✔ הגיבוי נטען!'); go('home');
       }
     }catch(e){ alert('הקובץ לא תקין'); }
     inp.value='';
@@ -1422,17 +1502,19 @@ function importFile(inp){
   rd.readAsText(f);
 }
 function wipeAll(){
-  if(confirm('למחוק את כל ההיסטוריה? אין דרך חזרה!')&&confirm('בטוח בטוח? כדאי לייצא גיבוי קודם.')){
-    localStorage.removeItem(KEY); localStorage.removeItem(OLDKEY);
-    S=null; S=(()=>{ const s={version:2, settings:{rest:150, step:2.5, sound:true, api:'', token:''}, records:{}, outbox:[]};
-      s.records['plan']={id:'plan', updatedAt:Date.now(), deleted:false, data:{type:'plan', ...JSON.parse(JSON.stringify(DEFAULT_PLAN))}};
-      return s; })();
-    save(); go('home');
-  }
+  if(!confirm('למחוק את כל ההיסטוריה — גם מהטלפון וגם מהענן? אין דרך חזרה!')) return;
+  if(!confirm('בטוח בטוח? כדאי לייצא גיבוי קודם.')) return;
+  /* מחיקה אמיתית: כל הרשומות הופכות למחוקות ומסתנכרנות לענן */
+  Object.values(S.records).forEach(r=>{ if(r.id!=='plan'){ r.deleted=true; r.updatedAt=Date.now(); if(!S.outbox.includes(r.id)) S.outbox.push(r.id); } });
+  S.records['plan']={id:'plan', updatedAt:Date.now(), deleted:false, data:{type:'plan', ...JSON.parse(JSON.stringify(DEFAULT_PLAN))}};
+  if(!S.outbox.includes('plan')) S.outbox.push('plan');
+  save(); flush(); go('home'); celebrate('🗑️ הכל נמחק');
 }
 
 /* ================= התחלה ================= */
-renderHome(); pull(); flush();
+renderHome(); pull(); flush(); tryResumeDraft();
+/* עבודה מלאה גם בלי אינטרנט בחדר כושר */
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
 </script>
 </body>
 </html>
