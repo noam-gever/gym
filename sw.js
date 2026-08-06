@@ -22,8 +22,10 @@ self.addEventListener('fetch', e => {
     /* דף ראשי: רשת קודם (כדי לקבל עדכונים), מטמון אם אין אינטרנט */
     e.respondWith(
       fetch(e.request).then(r => {
-        const copy = r.clone();
-        caches.open(CACHE).then(c => c.put('./index.html', copy));
+        if (r.ok) { /* דף שגיאה זמני לא מרעיל את המטמון */
+          const copy = r.clone();
+          caches.open(CACHE).then(c => c.put('./index.html', copy));
+        }
         return r;
       }).catch(() => caches.match('./index.html'))
     );
@@ -32,7 +34,7 @@ self.addEventListener('fetch', e => {
   /* שאר הקבצים (פונטים, אייקונים): מטמון קודם, רשת כגיבוי */
   e.respondWith(
     caches.match(e.request).then(hit => hit || fetch(e.request).then(r => {
-      if (r.ok && (url.origin === location.origin || url.hostname.includes('fonts.g'))) {
+      if ((r.ok && url.origin === location.origin) || (url.hostname.includes('fonts.g') && (r.ok || r.type === 'opaque'))) {
         const copy = r.clone();
         caches.open(CACHE).then(c => c.put(e.request, copy));
       }

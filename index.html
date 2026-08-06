@@ -346,7 +346,7 @@ svg text{font-family:'Rubik',sans-serif}
   </div>
   <div id="w-exercises"></div>
   <div class="wnote-wrap">
-    <textarea id="w-note" rows="2" placeholder="הערה כללית לאימון (הרגשה, אנרגיה...)"></textarea>
+    <textarea id="w-note" rows="2" placeholder="הערה כללית לאימון (הרגשה, אנרגיה...)" oninput="saveDraft()"></textarea>
   </div>
   <div class="type-hint">💡 לחיצה על מספר הסט מחליפה סוג: רגיל ← W חימום ← D דרופסט ← F כשל</div>
 </div>
@@ -486,6 +486,7 @@ svg text{font-family:'Rubik',sans-serif}
 <script>
 /* ================= קבועים ================= */
 const KEY='noam-gym-v2', OLDKEY='noam-gym-v1';
+let clockOfs=0; /* פער מול שעון השרת — מוגדר כאן כדי שיהיה זמין מהרגע הראשון */
 const DEFAULT_API='https://script.google.com/macros/s/AKfycbwqn2M2wbh2C3aVQ33KUDAXcp3KR1RNBytZSTUcirA1Poo2KeaRhzCS5X2kLJpoDSgpkg/exec';
 const DEFAULT_TOKEN='noam-gym-fd23e6f115111f3a';
 const MUSCLES=['חזה','גב','כתפיים','יד קדמית','יד אחורית','רגליים','בטן'];
@@ -579,10 +580,10 @@ function migrate_(s){
     &&r.data.date==='2026-08-05'&&r.data.planId==='A'&&r.id!=='seed-2026-08-05');
   if(dups.length){
     if(!s.records['seed-2026-08-05']||s.records['seed-2026-08-05'].deleted){
-      s.records['seed-2026-08-05']={id:'seed-2026-08-05', updatedAt:Date.now(), deleted:false, data:dups[0].data};
+      s.records['seed-2026-08-05']={id:'seed-2026-08-05', updatedAt:now_(), deleted:false, data:dups[0].data};
       if(!s.outbox.includes('seed-2026-08-05')) s.outbox.push('seed-2026-08-05');
     }
-    dups.forEach(r=>{ r.deleted=true; r.updatedAt=Date.now(); if(!s.outbox.includes(r.id)) s.outbox.push(r.id); });
+    dups.forEach(r=>{ r.deleted=true; r.updatedAt=now_(); if(!s.outbox.includes(r.id)) s.outbox.push(r.id); });
   }
   /* מעבר למבנה גיליונות חדש — העלאה מלאה חד-פעמית */
   if(s.syncV!==2){
@@ -755,10 +756,10 @@ function viewWorkout(rid){
       <div class="stat"><div class="v num">${Math.round(vol(h)).toLocaleString()}</div><div class="k">ק"ג נפח</div></div>
     </div>
     ${h.prs&&h.prs.length?'<div class="panel"><div class="pr-list">'+h.prs.map(x=>'<div class="pr-line">🏆 '+x+'</div>').join('')+'</div></div>':''}
-    ${h.note?`<div class="panel" style="color:var(--gold); font-size:.9rem">📝 ${h.note}</div>`:''}
-    ${h.ex.map(e=>`<div class="sess"><div class="sdate">${e.n}</div>
+    ${h.note?`<div class="panel" style="color:var(--gold); font-size:.9rem">📝 ${escH(h.note)}</div>`:''}
+    ${h.ex.map(e=>`<div class="sess"><div class="sdate">${escH(e.n)}</div>
       ${e.sets.map((s,i)=>`<div class="sset">${s.t==='W'?'חימום':s.t==='D'?'דרופ':s.t==='F'?'כשל':'סט '+(i+1)}: <b><span class="num">${s.w}</span> ק"ג × <span class="num">${s.r}</span></b></div>`).join('')}
-      ${e.note?`<div class="snote">📌 ${e.note}</div>`:''}</div>`).join('')}
+      ${e.note?`<div class="snote">📌 ${escH(e.note)}</div>`:''}</div>`).join('')}
     <div class="row2" style="display:flex; gap:10px; margin-top:4px">
       <button class="btn-sec" style="flex:1; background:var(--card2); border:1px solid var(--line); border-radius:14px; padding:14px; font-weight:700" onclick="editWorkout('${rid}')">✏️ עריכה</button>
       <button class="btn-sec" style="flex:1; background:var(--card2); border:1px solid var(--line); border-radius:14px; padding:14px; font-weight:700" onclick="shareCard('${rid}')">📤 שיתוף</button>
@@ -856,9 +857,9 @@ function renderWorkout(title){
         <div style="flex:1">
           <div class="exname">${e.n}</div>
           <div class="extarget">יעד: ${e.planSets} סטים${e.hi?` × ${e.lo}-${e.hi}`:''} · עד כשל · מנוחה ${mmss(e.rest)}</div>
-          ${e.coachNote?`<div class="excoach">🧢 ${e.coachNote}</div>`:''}
+          ${e.coachNote?`<div class="excoach">🧢 ${escH(e.coachNote)}</div>`:''}
           ${lastTxt?`<div class="exlast">${lastTxt}</div>`:''}
-          ${e.lastNote?`<div class="exlast" style="color:var(--gold)">📌 ${e.lastNote}</div>`:''}
+          ${e.lastNote?`<div class="exlast" style="color:var(--gold)">📌 ${escH(e.lastNote)}</div>`:''}
           ${tgtHtml}
         </div>
         <div class="exbtns">
@@ -866,7 +867,7 @@ function renderWorkout(title){
           <button onclick="toggleNote(${ei})">📝</button>
         </div>
       </div>
-      <textarea class="exnote" id="note${ei}" rows="2" placeholder="הערה לתרגיל — תופיע לך גם באימון הבא" oninput="W.ex[${ei}].note=this.value; saveDraft()">${e.note}</textarea>
+      <textarea class="exnote" id="note${ei}" rows="2" placeholder="הערה לתרגיל — תופיע לך גם באימון הבא" oninput="W.ex[${ei}].note=this.value; saveDraft()">${escH(e.note)}</textarea>
       <div class="sethead"><div>סט</div><div>ק"ג</div><div>חזרות</div><div></div></div>
       ${e.sets.map((s,si)=>setRowHtml(ei,si)).join('')}
       <button class="addset" onclick="addSet(${ei})">+ הוסף סט</button>
@@ -882,13 +883,13 @@ function setRowHtml(ei,si){
     <div class="stepper">
       <button onclick="bump(${ei},${si},'w',1)">+</button>
       <input type="text" inputmode="decimal" value="${s.w||''}" placeholder="0" id="w${ei}-${si}"
-        onfocus="this.select()" oninput="W.ex[${ei}].sets[${si}].w=parseFloat(this.value.replace(',','.'))||0">
+        onfocus="this.select()" oninput="W.ex[${ei}].sets[${si}].w=parseFloat(this.value.replace(',','.'))||0; saveDraft()">
       <button onclick="bump(${ei},${si},'w',-1)">−</button>
     </div>
     <div class="stepper">
       <button onclick="bump(${ei},${si},'r',1)">+</button>
       <input type="text" inputmode="numeric" pattern="[0-9]*" value="${s.r||''}" placeholder="0" id="r${ei}-${si}"
-        onfocus="this.select()" oninput="W.ex[${ei}].sets[${si}].r=parseInt(this.value)||0">
+        onfocus="this.select()" oninput="W.ex[${ei}].sets[${si}].r=parseInt(this.value)||0; saveDraft()">
       <button onclick="bump(${ei},${si},'r',-1)">−</button>
     </div>
     <button class="chk ${s.done?'on':''}" onclick="toggleSet(${ei},${si})">✓</button>
@@ -1147,7 +1148,7 @@ function renderExDetail(){
     <div class="sess">
       <div class="sdate"><span>${fmtDate(p.date)}</span><button onclick="viewWorkout('${p.rid}')">פתח ›</button></div>
       ${p.sets.map((s,i)=>`<div class="sset">${s.t==='W'?'חימום':s.t==='D'?'דרופ':s.t==='F'?'כשל':'סט '+(i+1)}: <b><span class="num">${s.w}</span> ק"ג × <span class="num">${s.r}</span></b></div>`).join('')}
-      ${p.note?`<div class="snote">📌 ${p.note}</div>`:''}
+      ${p.note?`<div class="snote">📌 ${escH(p.note)}</div>`:''}
     </div>`).join('');
 }
 function chartSvg(pts){
@@ -1404,12 +1405,15 @@ async function flush(){
   if(flushing||!syncOn()||!S.outbox.length||!navigator.onLine) return;
   flushing=true;
   const sent=[...S.outbox]; /* מה שנוסף בזמן השליחה — יישאר בתור לסבב הבא */
+  const stamp={}; sent.forEach(id=>{ stamp[id]=S.records[id]&&S.records[id].updatedAt; });
   try{
     const payload={token:S.settings.token, records:sent.map(id=>S.records[id]).filter(Boolean)};
     const res=await fetch(S.settings.api,{method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload)});
     const out=JSON.parse(await res.text());
     if(!out.ok) throw new Error(out.error);
-    S.outbox=S.outbox.filter(id=>!sent.includes(id)); save(); mergeIn(out.records);
+    /* רשומה שהשתנתה תוך כדי השליחה נשארת בתור — הגרסה החדשה תעלה בסבב הבא */
+    S.outbox=S.outbox.filter(id=>!sent.includes(id)||(S.records[id]&&S.records[id].updatedAt!==stamp[id]));
+    save(); mergeIn(out.records);
     if(out.serverTime) updClock(out.serverTime);
     backoff=2000; lastSyncErr=false; syncStatus();
   }catch(e){
@@ -1430,7 +1434,6 @@ async function pull(){
   }catch(e){}
 }
 /* פיצוי על שעון מכשיר לא מכוון — חותמות הזמן מיושרות לשעון השרת */
-let clockOfs=0;
 function updClock(serverTime){ const ofs=serverTime-Date.now(); clockOfs=Math.abs(ofs)>60000?ofs:0; }
 function now_(){ return Date.now()+clockOfs; }
 function manualSync(){ if(!syncOn()){ go('settings'); return; } pull(); flush(); celebrate('☁️ מסנכרן...'); }
@@ -1505,9 +1508,10 @@ function wipeAll(){
   if(!confirm('למחוק את כל ההיסטוריה — גם מהטלפון וגם מהענן? אין דרך חזרה!')) return;
   if(!confirm('בטוח בטוח? כדאי לייצא גיבוי קודם.')) return;
   /* מחיקה אמיתית: כל הרשומות הופכות למחוקות ומסתנכרנות לענן */
-  Object.values(S.records).forEach(r=>{ if(r.id!=='plan'){ r.deleted=true; r.updatedAt=Date.now(); if(!S.outbox.includes(r.id)) S.outbox.push(r.id); } });
-  S.records['plan']={id:'plan', updatedAt:Date.now(), deleted:false, data:{type:'plan', ...JSON.parse(JSON.stringify(DEFAULT_PLAN))}};
+  Object.values(S.records).forEach(r=>{ if(r.id!=='plan'){ r.deleted=true; r.updatedAt=now_(); if(!S.outbox.includes(r.id)) S.outbox.push(r.id); } });
+  S.records['plan']={id:'plan', updatedAt:now_(), deleted:false, data:{type:'plan', ...JSON.parse(JSON.stringify(DEFAULT_PLAN))}};
   if(!S.outbox.includes('plan')) S.outbox.push('plan');
+  clearDraft();
   save(); flush(); go('home'); celebrate('🗑️ הכל נמחק');
 }
 
