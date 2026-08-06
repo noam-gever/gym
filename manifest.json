@@ -3,8 +3,8 @@
   "short_name": "אימון",
   "display": "standalone",
   "start_url": "./",
-  "background_color": "#0c0c0e",
-  "theme_color": "#0c0c0e",
+  "background_color": "#0a0f16",
+  "theme_color": "#0a0f16",
   "dir": "rtl",
   "lang": "he",
   "icons": [
