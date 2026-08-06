@@ -128,7 +128,21 @@ input,select{font-family:inherit}
 .exname{font-weight:700; font-size:1.02rem; line-height:1.3}
 .extarget{color:var(--dim); font-size:.8rem; margin-top:3px}
 .exlast{color:var(--ghost); font-size:.78rem; margin-top:2px}
-.excoach{color:var(--blue); font-size:.78rem; margin-top:2px}
+.excoach{color:var(--blue); font-size:.78rem; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:260px}
+.excoach.open{white-space:normal; max-width:none}
+.stall-q{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:22px; height:22px; border-radius:50%; margin-inline-start:4px; vertical-align:middle;
+  background:rgba(255,201,60,.15); border:1px solid var(--gold); color:var(--gold); font-weight:800; font-size:.8rem;
+  animation:qpulse 1.6s ease-in-out infinite;
+}
+@keyframes qpulse{0%,100%{opacity:.55}50%{opacity:1; box-shadow:0 0 8px rgba(255,201,60,.5)}}
+.fb-row{display:none; gap:8px; align-items:center; margin-top:10px; padding:9px 10px; background:var(--card2); border:1px solid var(--line); border-radius:12px; font-size:.85rem}
+.fb-row.show{display:flex}
+.fb-row button{font-size:1.25rem; padding:4px 8px; border-radius:9px; transition:transform .1s}
+.fb-row button:active{transform:scale(1.25)}
+.fb-row .fb-done{color:var(--acc); font-weight:600; font-size:.85rem}
+.vol-cmp{margin-top:8px; font-size:.8rem; font-weight:600}
 .target-chip{display:inline-block; background:rgba(20,224,200,.12); border:1px solid rgba(20,224,200,.35); color:var(--acc);
   font-size:.78rem; font-weight:700; border-radius:9px; padding:3px 9px; margin-top:6px}
 .target-chip.beat{background:rgba(255,201,60,.1); border-color:rgba(255,201,60,.3); color:var(--gold)}
@@ -299,7 +313,7 @@ svg text{font-family:'Rubik',sans-serif}
   <div class="subhead">
     <div class="today-date" id="home-date"></div>
     <div style="display:flex; gap:6px; align-items:center">
-      <span style="color:var(--ghost); font-size:.68rem">v3.0</span>
+      <span style="color:var(--ghost); font-size:.68rem">v4.0</span>
       <button id="sync-chip" onclick="manualSync()">—</button>
     </div>
   </div>
@@ -373,6 +387,10 @@ svg text{font-family:'Rubik',sans-serif}
     <div class="metric-tabs" id="exd-metrics"></div>
     <div id="exd-chart"></div>
   </div>
+  <div class="panel" id="exd-level-panel" style="display:none">
+    <h3>כמה אני חזק? 💪</h3>
+    <div id="exd-level"></div>
+  </div>
   <div class="panel" id="exd-records-panel">
     <h3>טבלת שיאים 🏅</h3>
     <table class="rec-table" id="exd-records"></table>
@@ -390,7 +408,13 @@ svg text{font-family:'Rubik',sans-serif}
 
 <!-- ============ סיכום חודשי ============ -->
 <div class="screen" id="scr-recap">
-  <div class="back-row"><button onclick="go('home')">‹ חזרה</button><h2 id="recap-title">סיכום החודש</h2></div>
+  <div class="back-row" style="justify-content:space-between">
+    <div style="display:flex; align-items:center; gap:8px"><button onclick="go('home')">‹ חזרה</button><h2 id="recap-title">סיכום החודש</h2></div>
+    <div style="display:flex; gap:4px">
+      <button class="pill" onclick="recapNav(-1)">‹</button>
+      <button class="pill" id="recap-next" onclick="recapNav(1)">›</button>
+    </div>
+  </div>
   <div id="recap-body"></div>
 </div>
 
@@ -468,7 +492,7 @@ svg text{font-family:'Rubik',sans-serif}
     </div>
   </div>
   <div style="color:var(--ghost); font-size:.75rem; text-align:center; margin-top:6px">
-    תוכנית: ברוך שייש · גרסה 3.0 טורקיז · נבנה עם קלוד 🤖
+    תוכנית: ברוך שייש · גרסה 4.0 · נבנה עם קלוד 🤖
   </div>
 </div>
 
@@ -489,7 +513,7 @@ svg text{font-family:'Rubik',sans-serif}
 
 <script>
 /* ================= קבועים ================= */
-const APP_VER='3.0';
+const APP_VER='4.0';
 const KEY='noam-gym-v2', OLDKEY='noam-gym-v1';
 let clockOfs=0; /* פער מול שעון השרת — מוגדר כאן כדי שיהיה זמין מהרגע הראשון */
 /* כל שגיאה מוצגת — כדי שנוכל לאתר תקלות בטלפון */
@@ -507,12 +531,12 @@ const MONTHS=['ינואר','פברואר','מרץ','אפריל','מאי','יונ
 
 const DEFAULT_PLAN={workouts:[
  {id:'A', name:'חזה גב כתפיים', day:0, ex:[
-   {n:'לחיצת חזה משקולות שיפוע חיובי', m:'חזה', sets:3, lo:6, hi:10, rest:150, note:''},
+   {n:'לחיצת חזה משקולות שיפוע חיובי', m:'חזה', sets:3, lo:6, hi:10, rest:150, note:'', side:true},
    {n:'לחיצת חזה במכונה', m:'חזה', sets:3, lo:6, hi:10, rest:150, note:''},
    {n:'משיכת פולי עליון רחב', m:'גב', sets:3, lo:6, hi:10, rest:150, note:''},
    {n:'חתירה כנגד מכונה באחיזה צרה', m:'גב', sets:3, lo:6, hi:10, rest:150, note:''},
    {n:'לחיצת כתפיים במכונה', m:'כתפיים', sets:3, lo:10, hi:20, rest:150, note:''},
-   {n:'הרחקות כתף כנגד פולי תחתון', m:'כתפיים', sets:3, lo:6, hi:10, rest:150, note:''},
+   {n:'הרחקות כתף כנגד פולי תחתון', m:'כתפיים', sets:3, lo:6, hi:10, rest:150, note:'', side:true},
  ]},
  {id:'B', name:'ידיים רגליים ובטן', day:2, ex:[
    {n:'כפיפות מרפקים כנגד פולי תחתון מוט', m:'יד קדמית', sets:5, lo:10, hi:15, rest:150, note:''},
@@ -523,12 +547,12 @@ const DEFAULT_PLAN={workouts:[
    {n:'כפיפות בטן + פלאנק', m:'בטן', sets:4, lo:null, hi:null, rest:35, note:'15 כפיפות / פלאנק דקה'},
  ]},
  {id:'C', name:'חזה גב כתפיים', day:4, ex:[
-   {n:'לחיצת חזה משקולות שיפוע חיובי', m:'חזה', sets:3, lo:6, hi:10, rest:150, note:''},
+   {n:'לחיצת חזה משקולות שיפוע חיובי', m:'חזה', sets:3, lo:6, hi:10, rest:150, note:'', side:true},
    {n:'לחיצת חזה במכונה', m:'חזה', sets:3, lo:6, hi:10, rest:150, note:''},
    {n:'מתח', m:'גב', sets:3, lo:null, hi:null, rest:150, note:'מקסימום חזרות'},
    {n:'חתירה כנגד מכונה באחיזה צרה', m:'גב', sets:3, lo:6, hi:10, rest:150, note:''},
    {n:'לחיצת כתפיים במכונה', m:'כתפיים', sets:3, lo:10, hi:20, rest:150, note:''},
-   {n:'הרחקות כתף כנגד פולי תחתון', m:'כתפיים', sets:3, lo:6, hi:10, rest:150, note:''},
+   {n:'הרחקות כתף כנגד פולי תחתון', m:'כתפיים', sets:3, lo:6, hi:10, rest:150, note:'', side:true},
  ]}
 ]};
 
@@ -598,9 +622,20 @@ function migrate_(s){
     dups.forEach(r=>{ r.deleted=true; r.updatedAt=now_(); if(!s.outbox.includes(r.id)) s.outbox.push(r.id); });
   }
   /* מעבר למבנה גיליונות חדש — העלאה מלאה חד-פעמית */
-  if(s.syncV!==2){
+  if(s.syncV!==2&&s.syncV!==3){
     s.syncV=2;
     Object.keys(s.records).forEach(id=>{ if(!s.outbox.includes(id)) s.outbox.push(id); });
+  }
+  /* גרסה 4: סימון "לכל יד" בתרגילים הקיימים בתוכנית */
+  if(s.syncV!==3){
+    s.syncV=3;
+    const p=s.records['plan'];
+    if(p&&p.data&&p.data.workouts){
+      const SIDE=['לחיצת חזה משקולות שיפוע חיובי','הרחקות כתף כנגד פולי תחתון'];
+      p.data.workouts.forEach(w=>w.ex.forEach(e=>{ if(SIDE.includes(e.n)) e.side=true; }));
+      p.updatedAt=Date.now();
+      if(!s.outbox.includes('plan')) s.outbox.push('plan');
+    }
   }
 }
 function guessMuscle(n){
@@ -653,9 +688,36 @@ function lastPerf(exName, excludeRid){
   for(let i=ws.length-1;i>=0;i--){
     const h=ws[i]; if(excludeRid&&h.rid===excludeRid) continue;
     const e=h.ex.find(e=>e.n===exName&&e.sets.some(s=>s.t!=='W'&&(s.w>0||s.r>0)));
-    if(e) return {date:h.date, sets:e.sets.filter(s=>s.t!=='W'), note:e.note};
+    if(e) return {date:h.date, sets:e.sets.filter(s=>s.t!=='W'), note:e.note, fb:e.fb};
   }
   return null;
+}
+/* כל ההופעות של תרגיל, מהחדש לישן — לזיהוי תקיעות וכיול */
+function exHistory(exName){
+  const out=[];
+  const ws=workouts();
+  for(let i=ws.length-1;i>=0;i--){
+    const e=ws[i].ex.find(e=>e.n===exName&&e.sets.some(s=>s.t!=='W'&&s.r>0));
+    if(e) out.push({date:ws[i].date, sets:e.sets.filter(s=>s.t!=='W'&&s.r>0), fb:e.fb});
+  }
+  return out;
+}
+/* תקיעות: 3 מפגשים רצופים בלי שיפור במשקל או בחזרות */
+function isStalled(exName){
+  const h=exHistory(exName);
+  if(h.length<3) return false;
+  const top=e=>{ const bw=Math.max(...e.sets.map(s=>s.w)); return {w:bw, r:Math.max(...e.sets.filter(s=>s.w===bw).map(s=>s.r))}; };
+  for(let i=0;i<2;i++){
+    const now=top(h[i]), prev=top(h[i+1]);
+    if(now.w>prev.w||(now.w===prev.w&&now.r>prev.r)) return false;
+  }
+  const snooze=(S.stallSnooze||{})[exName]||0;
+  return h.length>=snooze;
+}
+/* סט כיול: כל 6 הופעות של התרגיל */
+function calibrationDue(exName){
+  const n=exHistory(exName).length;
+  return n>0&&n%6===0;
 }
 function maxWeight(exName, excludeRid){
   let m=0;
@@ -670,17 +732,28 @@ function maxReps(exName, excludeRid){
   return m;
 }
 
-/* התקדמות כפולה: הגעת לתקרת הטווח בכל הסטים? עולים משקל */
+/* התקדמות כפולה + משוב: כל הצעה מגיעה עם הסבר */
 function suggestTarget(pe){
   const last=lastPerf(pe.n);
   if(!last||!last.sets.length) return null;
   const work=last.sets.filter(isWork);
   if(!work.length) return null;
   const topW=Math.max(...work.map(s=>s.w));
-  if(pe.hi&&work.length>=pe.sets&&work.every(s=>s.r>=pe.hi)&&topW>0){
-    return {up:true, w:Math.round((topW+S.settings.step)*100)/100, lo:pe.lo};
+  const hitTop=pe.hi&&work.length>=pe.sets&&work.every(s=>s.r>=pe.hi)&&topW>0;
+  if(hitTop&&last.fb==='hard'){
+    return {up:false, w:topW, why:'סגרת את כל הסטים בתקרה, אבל סימנת "קשה מדי" — נבסס עוד אימון על המשקל הזה לפני שעולים'};
   }
-  return {up:false, w:topW};
+  if(hitTop){
+    return {up:true, w:Math.round((topW+S.settings.step)*100)/100, lo:pe.lo,
+      why:'בפעם הקודמת סגרת את כל הסטים בתקרת הטווח ('+pe.hi+' חזרות) — הגיע הזמן לעלות משקל!'};
+  }
+  if(last.fb==='easy'){
+    return {up:false, w:topW, plus:true, why:'סימנת "היה קל" — ננסה היום להוסיף חזרה או שתיים בכל סט'};
+  }
+  if(last.fb==='hard'){
+    return {up:false, w:topW, why:'סימנת "קשה מדי" בפעם הקודמת — היום נתבסס, בלי לחץ לעלות'};
+  }
+  return {up:false, w:topW, why:'עוד לא סגרת את כל הסטים בתקרת הטווח — היעד היום: יותר חזרות מהפעם הקודמת'};
 }
 
 /* ================= ניווט ================= */
@@ -769,7 +842,7 @@ function viewWorkout(rid){
     </div>
     ${h.prs&&h.prs.length?'<div class="panel"><div class="pr-list">'+h.prs.map(x=>'<div class="pr-line">🏆 '+x+'</div>').join('')+'</div></div>':''}
     ${h.note?`<div class="panel" style="color:var(--gold); font-size:.9rem">📝 ${escH(h.note)}</div>`:''}
-    ${h.ex.map(e=>`<div class="sess"><div class="sdate">${escH(e.n)}</div>
+    ${h.ex.map(e=>`<div class="sess"><div class="sdate">${escH(e.n)} ${e.fb==='easy'?'😃':e.fb==='ok'?'😐':e.fb==='hard'?'🥵':''}</div>
       ${e.sets.map((s,i)=>`<div class="sset">${s.t==='W'?'חימום':s.t==='D'?'דרופ':s.t==='F'?'כשל':'סט '+(i+1)}: <b><span class="num">${s.w}</span> ק"ג × <span class="num">${s.r}</span></b></div>`).join('')}
       ${e.note?`<div class="snote">📌 ${escH(e.note)}</div>`:''}</div>`).join('')}
     <div class="row2" style="display:flex; gap:10px; margin-top:4px">
@@ -780,7 +853,11 @@ function viewWorkout(rid){
   go('wview');
 }
 function deleteWorkoutUi(rid){
-  if(confirm('למחוק את האימון הזה?')){ delRecord(rid); go('home'); }
+  delRecord(rid); go('home');
+  undoToast('האימון נמחק', ()=>{
+    const r=S.records[rid];
+    if(r){ r.deleted=false; r.updatedAt=now_(); if(!S.outbox.includes(rid)) S.outbox.push(rid); save(); flush(); renderHome(); }
+  });
 }
 
 /* ================= אימון פעיל ================= */
@@ -828,8 +905,10 @@ function startWorkout(planId){
         half=half>=10?Math.round(half/2.5)*2.5:Math.round(half*2)/2;
         sets.unshift({w:half, r:10, t:'W', done:false, prev:null});
       }
-      return {n:pe.n, m:pe.m, lo:pe.lo, hi:pe.hi, planSets:pe.sets, rest:pe.rest, coachNote:pe.note,
-              note:'', lastNote:last?last.note:'', lastDate:last?last.date:null, tgt, sets};
+      return {n:pe.n, m:pe.m, lo:pe.lo, hi:pe.hi, planSets:pe.sets, rest:pe.rest, coachNote:pe.note, side:pe.side,
+              note:'', lastNote:last?last.note:'', lastDate:last?last.date:null, tgt, sets,
+              fb:null, stalled:isStalled(pe.n), calib:calibrationDue(pe.n),
+              prevVol:last?last.sets.filter(isWork).reduce((a,s)=>a+s.w*s.r,0):0};
      })};
   openWorkoutScreen(p.name);
 }
@@ -862,16 +941,19 @@ function renderWorkout(title){
   $('w-exercises').innerHTML=W.ex.map((e,ei)=>{
     const lastTxt=e.lastDate?`פעם קודמת (${shortDate(e.lastDate)}): ${e.sets.filter(s=>s.prev).map(s=>`<span class="num">${s.prev.w}×${s.prev.r}</span>`).join(' · ')||'—'}`:(W.editRid?'':'אין היסטוריה — אימון ראשון!');
     let tgtHtml='';
-    if(e.tgt&&e.tgt.up) tgtHtml=`<div class="target-chip">🎯 הגעת לתקרה! היום: <span class="num">${e.tgt.w}</span> ק"ג × <span class="num">${e.lo?e.lo+'+':''}</span></div>`;
-    else if(e.tgt&&e.tgt.w>0&&e.hi) tgtHtml=`<div class="target-chip beat">🎯 לנצח את הפעם הקודמת</div>`;
+    const whyAttr=e.tgt&&e.tgt.why?` onclick="showWhy(${ei})"`:'';
+    if(e.tgt&&e.tgt.up) tgtHtml=`<div class="target-chip"${whyAttr}>🎯 עולים משקל! היום: <span class="num">${e.tgt.w}</span> ק"ג ${e.tgt.why?'· למה? ⓘ':''}</div>`;
+    else if(e.tgt&&e.tgt.plus) tgtHtml=`<div class="target-chip beat"${whyAttr}>🎯 היום: להוסיף חזרות ${e.tgt.why?'· ⓘ':''}</div>`;
+    else if(e.tgt&&e.tgt.w>0&&e.hi) tgtHtml=`<div class="target-chip beat"${whyAttr}>🎯 לנצח את הפעם הקודמת ${e.tgt.why?'· ⓘ':''}</div>`;
     return `<div class="excard" id="ex${ei}">
       <div class="exhead">
         <div style="flex:1">
-          <div class="exname">${e.n}</div>
-          <div class="extarget">יעד: ${e.planSets} סטים${e.hi?` × ${e.lo}-${e.hi}`:''} · עד כשל · מנוחה ${mmss(e.rest)}</div>
-          ${e.coachNote?`<div class="excoach">🧢 ${escH(e.coachNote)}</div>`:''}
+          <div class="exname">${escH(e.n)} ${e.stalled&&!W.editRid?`<button class="stall-q" onclick="openStall(${ei})">?</button>`:''}</div>
+          <div class="extarget">יעד: ${e.planSets} סטים${e.hi?` × ${e.lo}-${e.hi}`:''} · עד כשל · מנוחה ${mmss(e.rest)}${e.side?' · <b style="color:var(--blue)">משקל לכל יד/צד</b>':''}</div>
+          ${e.coachNote?`<div class="excoach" onclick="this.classList.toggle('open')">🧢 ${escH(e.coachNote)}</div>`:''}
           ${lastTxt?`<div class="exlast">${lastTxt}</div>`:''}
           ${e.lastNote?`<div class="exlast" style="color:var(--gold)">📌 ${escH(e.lastNote)}</div>`:''}
+          ${e.calib&&!W.editRid?`<div class="target-chip" style="border-color:rgba(255,201,60,.4); color:var(--gold); background:rgba(255,201,60,.1)">🧪 היום סט כיול — בסט האחרון תן מקסימום חזרות!</div>`:''}
           ${tgtHtml}
         </div>
         <div class="exbtns">
@@ -879,12 +961,14 @@ function renderWorkout(title){
           <button onclick="toggleNote(${ei})">📝</button>
         </div>
       </div>
+      <div class="fb-row" id="fb${ei}"></div>
       <textarea class="exnote" id="note${ei}" rows="2" placeholder="הערה לתרגיל — תופיע לך גם באימון הבא" oninput="W.ex[${ei}].note=this.value; saveDraft()">${escH(e.note)}</textarea>
       <div class="sethead"><div>סט</div><div>ק"ג</div><div>חזרות</div><div></div></div>
       ${e.sets.map((s,si)=>setRowHtml(ei,si)).join('')}
       <button class="addset" onclick="addSet(${ei})">+ הוסף סט</button>
     </div>`;
   }).join('');
+  W.ex.forEach((e,ei)=>renderFb(ei, e.sets.length>0&&e.sets.every(x=>x.done)));
 }
 function setRowHtml(ei,si){
   const s=W.ex[ei].sets[si];
@@ -956,13 +1040,72 @@ function toggleSet(ei,si){
       if(s.w>mW&&mW>0){ addPr(`${W.ex[ei].n} — ${s.w} ק"ג (שיא משקל)`); celebrate(`🏆 שיא משקל! ${W.ex[ei].n} — ${s.w} ק"ג`); }
       else if(s.w===0&&s.r>mR&&mR>0){ addPr(`${W.ex[ei].n} — ${s.r} חזרות (שיא)`); celebrate(`🏆 שיא חזרות! ${W.ex[ei].n} — ${s.r}`); }
     }
-    if(W.start&&s.t!=='D') restStart(W.ex[ei].rest);
+    const allDone=W.ex[ei].sets.every(x=>x.done);
+    /* טיימר חכם: חימום = מנוחה קצרה · סיום תרגיל = בלי טיימר · דרופסט = בלי טיימר */
+    if(W.start&&s.t!=='D'&&!allDone) restStart(s.t==='W'?Math.min(60,W.ex[ei].rest):W.ex[ei].rest);
+    if(allDone) restStop();
   } else s.done=false;
   const row=$('row'+ei+'-'+si);
   row.classList.toggle('done',s.done);
   row.querySelector('.chk').classList.toggle('on',s.done);
-  $('ex'+ei).classList.toggle('done-all', W.ex[ei].sets.every(x=>x.done));
+  const allDone=W.ex[ei].sets.every(x=>x.done);
+  $('ex'+ei).classList.toggle('done-all', allDone);
+  renderFb(ei, allDone);
   updSetCount(); saveDraft();
+}
+/* שורת משוב + השוואת נפח — מופיעה רק כשהתרגיל הושלם, בלי להפריע */
+function renderFb(ei, allDone){
+  const el=$('fb'+ei); if(!el) return;
+  const e=W.ex[ei];
+  if(!allDone||W.editRid){ el.classList.remove('show'); return; }
+  const vol=e.sets.filter(s=>s.t!=='W'&&s.done).reduce((a,s)=>a+(s.w||0)*(s.r||0),0);
+  let cmp='';
+  if(e.prevVol>0&&vol>0){
+    const d=Math.round((vol/e.prevVol-1)*100);
+    cmp=d>0?`<span class="vol-cmp" style="color:var(--acc)">📈 +${d}% נפח מהפעם הקודמת</span>`
+      :d<0?`<span class="vol-cmp" style="color:var(--dim)">נפח: ${d}% מהפעם הקודמת</span>`
+      :`<span class="vol-cmp" style="color:var(--dim)">נפח זהה לפעם הקודמת</span>`;
+  }
+  el.innerHTML=e.fb
+    ?`<span class="fb-done">✔ המשוב נרשם</span> ${cmp}`
+    :`<span style="color:var(--dim)">איך היה?</span>
+      <button onclick="setFb(${ei},'easy')">😃</button>
+      <button onclick="setFb(${ei},'ok')">😐</button>
+      <button onclick="setFb(${ei},'hard')">🥵</button> ${cmp}`;
+  el.classList.add('show');
+}
+function setFb(ei,v){ W.ex[ei].fb=v; renderFb(ei,true); saveDraft(); }
+function showWhy(ei){ const e=W.ex[ei]; if(e.tgt&&e.tgt.why) celebrateInfo('💡 '+e.tgt.why); }
+/* דיאלוג תקיעות — נפתח רק בלחיצה על סימן השאלה */
+function openStall(ei){
+  const e=W.ex[ei];
+  const drop=Math.max(0, Math.round((Math.max(...e.sets.filter(s=>s.t!=='W').map(s=>s.w||0))*0.9)/2.5)*2.5);
+  $('sheet').innerHTML=`
+    <h2>נראה שנתקענו 🤔</h2>
+    <div class="sub">${escH(e.n)} — בלי התקדמות 3 אימונים ברצף. זה נורמלי לגמרי! מה עושים?</div>
+    <div style="display:flex; flex-direction:column; gap:10px">
+      <button class="btn-sec" style="text-align:start; padding:15px" onclick="stallChoice(${ei},'drop')">🔄 <b>לרדת ל-<span class="num">${drop}</span> ק"ג ולטפס מחדש</b><br><span style="color:var(--dim); font-size:.82rem">ירידה של ~10% — צוברים תנופה ושוברים את המחסום</span></button>
+      <button class="btn-sec" style="text-align:start; padding:15px" onclick="stallChoice(${ei},'continue')">💪 <b>ממשיכים כרגיל</b><br><span style="color:var(--dim); font-size:.82rem">עוד ניסיון על אותו משקל</span></button>
+      <button class="btn-sec" style="text-align:start; padding:15px" onclick="stallChoice(${ei},'snooze')">😴 <b>תזכירו לי בעוד 3 אימונים</b><br><span style="color:var(--dim); font-size:.82rem">אפשר גם לשאול את ברוך מה הוא ממליץ</span></button>
+    </div>`;
+  openModal();
+}
+function stallChoice(ei,c){
+  const e=W.ex[ei];
+  if(c==='drop'){
+    const drop=Math.max(0, Math.round((Math.max(...e.sets.filter(s=>s.t!=='W').map(s=>s.w||0))*0.9)/2.5)*2.5);
+    e.sets.forEach((s,si)=>{ if(s.t!=='W'&&!s.done){ s.w=drop; const inp=$('w'+ei+'-'+si); if(inp) inp.value=drop; } });
+    e.note=(e.note?e.note+' · ':'')+'ירדנו 10% לשבירת תקיעות';
+    celebrate('🔄 המשקלים עודכנו — מטפסים מחדש!');
+  }
+  if(c==='snooze'||c==='continue'){
+    S.stallSnooze=S.stallSnooze||{};
+    S.stallSnooze[e.n]=exHistory(e.n).length+(c==='snooze'?3:1);
+    save();
+  }
+  e.stalled=false;
+  const q=document.querySelector('#ex'+ei+' .stall-q'); if(q) q.remove();
+  closeModal(); saveDraft();
 }
 function addPr(txt){
   const base=txt.split(' — ')[0];
@@ -982,7 +1125,7 @@ function stopWorkoutTimers(){ clearInterval(clockInt); restStop(); if(wakeLock){
 function finishWorkout(){
   const undone=W.ex.reduce((a,e)=>a+e.sets.filter(s=>!s.done).length,0);
   if(undone>0&&!confirm(`יש ${undone} סטים לא מסומנים — הם לא יישמרו. לסיים?`)) return;
-  const done=W.ex.map(e=>({n:e.n, m:e.m, note:e.note, sets:e.sets.filter(s=>s.done&&(s.r>0||s.w>0)).map(s=>({w:s.w,r:s.r,...(s.t?{t:s.t}:{})}))}))
+  const done=W.ex.map(e=>({n:e.n, m:e.m, note:e.note, ...(e.fb?{fb:e.fb}:{}), sets:e.sets.filter(s=>s.done&&(s.r>0||s.w>0)).map(s=>({w:s.w,r:s.r,...(s.t?{t:s.t}:{})}))}))
     .filter(e=>e.sets.length);
   if(!done.length){ alert('עוד לא סימנת אף סט ✓'); return; }
   const dur=W.editRid?W.origDur:Math.max(1,Math.round((Date.now()-W.start)/60000));
@@ -996,6 +1139,17 @@ function finishWorkout(){
 }
 function showSummary(rid, entry){
   const p=planById(entry.planId);
+  /* השוואה לאימון הקודם מאותו סוג */
+  const prev=[...workouts()].reverse().find(h=>h.planId===entry.planId&&h.rid!==rid);
+  let cmpHtml='';
+  if(prev){
+    const pv=vol(prev), cv=vol(entry);
+    if(pv>0&&cv>0){
+      const d=Math.round((cv/pv-1)*100);
+      cmpHtml=d>0?`<div class="pr-line" style="color:var(--acc)">📈 הרמת ${d}%+ נפח מהאימון הקודם!</div>`
+        :`<div class="pr-line" style="color:var(--dim)">נפח מול האימון הקודם: ${d}%</div>`;
+    }
+  }
   $('sheet').innerHTML=`
     <h2>כל הכבוד נעם! 💪</h2>
     <div class="sub">${p?p.name:''} · ${fmtDate(entry.date)}</div>
@@ -1004,6 +1158,7 @@ function showSummary(rid, entry){
       <div class="stat"><div class="v num">${entry.ex.reduce((a,e)=>a+e.sets.length,0)}</div><div class="k">סטים</div></div>
       <div class="stat"><div class="v num">${Math.round(vol(entry)).toLocaleString()}</div><div class="k">ק"ג נפח</div></div>
     </div>
+    ${cmpHtml?'<div class="pr-list">'+cmpHtml+'</div>':''}
     ${entry.prs&&entry.prs.length?'<div class="pr-list">'+entry.prs.map(x=>'<div class="pr-line">🏆 '+x+'</div>').join('')+'</div>':''}
     <div class="row2">
       <button class="btn-sec" onclick="closeModal(); shareCard('${rid}')">📤 שיתוף</button>
@@ -1095,6 +1250,19 @@ function celebrate(msg){
   clearTimeout(toastT); toastT=setTimeout(()=>$('toast').classList.remove('show'),3200);
   confettiBurst();
 }
+/* טוסט מידע — בלי קונפטי, נשאר יותר זמן לקריאה */
+function celebrateInfo(msg){
+  $('toast').textContent=msg; $('toast').classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(()=>$('toast').classList.remove('show'),6000);
+}
+/* טוסט עם כפתור ביטול — במקום חלונות "בטוח?" */
+function undoToast(msg, fn){
+  const t=$('toast');
+  t.innerHTML=escH(msg)+' &nbsp; <button style="color:var(--acc); font-weight:800; text-decoration:underline" id="undo-btn">ביטול</button>';
+  t.classList.add('show');
+  $('undo-btn').onclick=()=>{ fn(); t.classList.remove('show'); };
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),6000);
+}
 function confettiBurst(){
   const em=['🎉','⭐','💪','🔥','🏆'];
   for(let i=0;i<18;i++){
@@ -1105,6 +1273,35 @@ function confettiBurst(){
     s.style.fontSize=(0.9+Math.random()*1.1)+'rem';
     document.body.appendChild(s); setTimeout(()=>s.remove(),2300);
   }
+}
+
+/* ================= דרגות כוח ================= */
+const LEVEL_NAMES=['מתחיל','מתאמן','בינוני','מתקדם','עילית 🏆'];
+const STRENGTH_TABLE=[
+ {n:'לחיצת חזה במכונה', mult:[0.45,0.65,0.9,1.25,1.6]},
+ {n:'משיכת פולי עליון רחב', mult:[0.4,0.6,0.85,1.15,1.5]},
+ {n:'חתירה כנגד מכונה באחיזה צרה', mult:[0.4,0.6,0.9,1.2,1.5]},
+ {n:'לחיצת רגליים במכונה השחורה', mult:[1.0,1.8,2.5,3.3,4.2]},
+ {n:'לחיצת כתפיים במכונה', mult:[0.25,0.4,0.6,0.85,1.1]},
+];
+function currentBW(){ const b=bodyWeights(); return b.length?b[b.length-1].kg:90; }
+function bestE1rm(exName){
+  let m=0;
+  workouts().forEach(h=>h.ex.forEach(e=>{ if(e.n===exName) e.sets.forEach(s=>{ if(s.t!=='W'){ const v=e1rm(s.w,s.r); if(v>m) m=v; } }); }));
+  return m;
+}
+function strengthLevel(exName){
+  const t=STRENGTH_TABLE.find(x=>x.n===exName); if(!t) return null;
+  const bw=currentBW(), best=bestE1rm(exName);
+  if(!best) return null;
+  const ratio=best/bw;
+  let lvl=-1;
+  t.mult.forEach((m,i)=>{ if(ratio>=m) lvl=i; });
+  const nextIdx=Math.min(lvl+1, t.mult.length-1);
+  const nextKg=t.mult[nextIdx]*bw;
+  return {best:Math.round(best*10)/10, lvl, name:lvl>=0?LEVEL_NAMES[lvl]:'בדרך ל"מתחיל"',
+    next:lvl<t.mult.length-1?{name:LEVEL_NAMES[nextIdx], kg:Math.round(nextKg*10)/10, missing:Math.max(0,Math.round((nextKg-best)*10)/10)}:null,
+    pct:Math.min(100, Math.round(ratio/t.mult[t.mult.length-1]*100))};
 }
 
 /* ================= התקדמות ================= */
@@ -1149,6 +1346,19 @@ function renderExDetail(){
   const metrics=[{k:'w',n:'משקל שיא'},{k:'e',n:'1RM משוער'},{k:'v',n:'נפח'},{k:'r',n:'חזרות'}];
   $('exd-metrics').innerHTML=metrics.map(m=>`<button class="${curMetric===m.k?'act':''}" onclick="curMetric='${m.k}';renderExDetail()">${m.n}</button>`).join('');
   $('exd-chart').innerHTML=pts.length?chartSvg(pts.map(p=>({date:p.date, val:p[curMetric]}))):'<div class="empty-note">אין עדיין נתונים</div>';
+  /* דרגת כוח */
+  const lv=strengthLevel(curEx);
+  $('exd-level-panel').style.display=lv?'block':'none';
+  if(lv){
+    $('exd-level').innerHTML=`
+      <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px">
+        <div style="font-size:1.15rem; font-weight:800">${lv.name}</div>
+        <div style="color:var(--dim); font-size:.82rem">כוח משוער: <b class="num" style="color:var(--txt)">${lv.best}</b> ק"ג</div>
+      </div>
+      <div class="mus-bar" style="margin-bottom:8px"><div class="mus-fill" style="width:${lv.pct}%"></div></div>
+      ${lv.next?`<div style="color:var(--dim); font-size:.85rem">🎯 עוד <b class="num" style="color:var(--acc)">${lv.next.missing}</b> ק"ג לדרגת "${lv.next.name}" (<span class="num">${lv.next.kg}</span> ק"ג)</div>`:'<div style="color:var(--gold); font-size:.9rem; font-weight:700">הגעת לדרגה הגבוהה ביותר! 👑</div>'}
+      <div style="color:var(--ghost); font-size:.72rem; margin-top:8px">מחושב לפי סטנדרטים עולמיים, יחסית למשקל הגוף שלך (<span class="num">${currentBW()}</span> ק"ג)</div>`;
+  }
   /* טבלת שיאים: לכל משקל — שיא החזרות */
   const recs={};
   pts.forEach(p=>p.sets.filter(s=>s.t!=='W'&&s.r>0).forEach(s=>{ if(!recs[s.w]||s.r>recs[s.w].r) recs[s.w]={r:s.r, date:p.date}; }));
@@ -1208,9 +1418,12 @@ function renderMuscles(weeksBack){
 
 /* ================= סיכום חודשי ================= */
 const FUN=[{n:'וספה',w:130,e:'🛵'},{n:'פסנתר',w:480,e:'🎹'},{n:'סוס',w:500,e:'🐴'},{n:'מכונית',w:1500,e:'🚗'},{n:'קרנף',w:2300,e:'🦏'},{n:'פיל',w:6000,e:'🐘'},{n:'משאית',w:15000,e:'🚚'},{n:'לווייתן כחול',w:150000,e:'🐋'}];
+let recapOff=0;
+function recapNav(d){ recapOff=Math.min(0, recapOff+d); renderRecap(); }
 function renderRecap(){
-  const now=new Date();
-  $('recap-title').textContent='סיכום '+MONTHS[now.getMonth()];
+  const now=new Date(); now.setDate(1); now.setMonth(now.getMonth()+recapOff);
+  $('recap-title').textContent='סיכום '+MONTHS[now.getMonth()]+(now.getFullYear()!==new Date().getFullYear()?' '+now.getFullYear():'');
+  $('recap-next').style.visibility=recapOff<0?'visible':'hidden';
   const ws=workouts().filter(h=>{const d=new Date(h.date+'T12:00'); return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
   if(!ws.length){ $('recap-body').innerHTML='<div class="empty-note">עוד אין אימונים החודש</div>'; return; }
   const totVol=ws.reduce((a,h)=>a+vol(h),0);
@@ -1256,6 +1469,16 @@ function renderAch(){
     {e:'⚡',n:'3 חודשים רצוף',d:'12 שבועות עם אימון', cur:streak, goal:12},
     {e:'🦾',n:'חצי שנה רצוף',d:'26 שבועות עם אימון', cur:streak, goal:26},
   ];
+  /* אבני דרך יחסיות למשקל הגוף — בלי מוט, עם המכונות שלך */
+  const bw=currentBW();
+  const chest=maxWeight('לחיצת חזה במכונה'), legs=maxWeight('לחיצת רגליים במכונה השחורה');
+  defs.push(
+    {e:'🐣',n:'חצי ממשקל הגוף על החזה',d:`לחיצת חזה ${Math.round(bw/2)} ק"ג (אתה: ${chest})`, cur:chest, goal:Math.round(bw/2)},
+    {e:'💪',n:'75% ממשקל הגוף על החזה',d:`לחיצת חזה ${Math.round(bw*0.75)} ק"ג`, cur:chest, goal:Math.round(bw*0.75)},
+    {e:'🦍',n:'משקל גוף מלא על החזה!',d:`לחיצת חזה ${Math.round(bw)} ק"ג`, cur:chest, goal:Math.round(bw)},
+    {e:'🚂',n:'פעמיים משקל גוף ברגליים',d:`לחיצת רגליים ${Math.round(bw*2)} ק"ג`, cur:legs, goal:Math.round(bw*2)},
+    {e:'🚀',n:'שלוש פעמים משקל גוף ברגליים',d:`לחיצת רגליים ${Math.round(bw*3)} ק"ג`, cur:legs, goal:Math.round(bw*3)},
+  );
   $('ach-list').innerHTML=defs.map(a=>{
     const got=a.cur>=a.goal;
     const pct=Math.min(100,Math.round(a.cur/a.goal*100));
@@ -1306,6 +1529,14 @@ function renderPeTabs(){
         <div><label>חזרות מ-</label><input type="text" inputmode="numeric" value="${e.lo||''}" oninput="peSet(${i},'lo',parseInt(this.value)||null)"></div>
         <div><label>עד</label><input type="text" inputmode="numeric" value="${e.hi||''}" oninput="peSet(${i},'hi',parseInt(this.value)||null)"></div>
       </div>
+      <div class="pe-grid" style="grid-template-columns:1fr 1fr 2fr">
+        <div><label>מנוחה (שנ')</label><input type="text" inputmode="numeric" value="${e.rest||150}" oninput="peSet(${i},'rest',Math.max(10,parseInt(this.value)||150))"></div>
+        <div style="display:flex; align-items:flex-end; gap:6px; padding-bottom:6px">
+          <input type="checkbox" id="side${i}" ${e.side?'checked':''} onchange="peSet(${i},'side',this.checked)" style="width:20px; height:20px">
+          <label for="side${i}" style="font-size:.78rem; color:var(--dim); margin:0">לכל יד/צד</label>
+        </div>
+        <div></div>
+      </div>
       <input class="pe-note" value="${escH(e.note||'')}" oninput="peSet(${i},'note',this.value)" placeholder="הערת מאמן (תוצג בכל אימון)">
       <div class="pe-actions">
         <button onclick="peMove(${i},-1)">↑</button>
@@ -1321,7 +1552,11 @@ function peSet(i,f,v){
   peEx()[i][f]=v;
 }
 function peMove(i,d){ const ex=peEx(); const j=i+d; if(j<0||j>=ex.length) return; [ex[i],ex[j]]=[ex[j],ex[i]]; renderPeTabs(); }
-function peDel(i){ if(confirm('למחוק את התרגיל?')){ peEx().splice(i,1); renderPeTabs(); } }
+function peDel(i){
+  const removed=peEx().splice(i,1)[0];
+  renderPeTabs();
+  undoToast('"'+(removed.n||'תרגיל')+'" הוסר', ()=>{ peEx().splice(i,0,removed); renderPeTabs(); });
+}
 function peAdd(){ peEx().push({n:'', m:'חזה', sets:3, lo:8, hi:12, rest:150, note:''}); renderPeTabs(); }
 function savePlanEdits(){
   peDraft.workouts.forEach(w=>{ w.ex=w.ex.filter(e=>e.n.trim()); });
