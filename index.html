@@ -64,12 +64,12 @@ input,select{font-family:inherit}
   box-shadow:0 10px 34px rgba(0,0,0,.4);
 }
 .hero::before{content:""; position:absolute; inset-inline-start:-50px; top:-60px; width:240px; height:240px;
-  background:radial-gradient(circle, rgba(20,224,200,.22), transparent 70%);}
+  background:radial-gradient(circle, rgba(20,224,200,.22), transparent 70%); pointer-events:none;}
 .hero .label{color:var(--dim); font-size:.85rem; font-weight:500; margin-bottom:6px}
 .hero .wname{font-size:1.45rem; font-weight:800; margin-bottom:3px}
 .hero .wmeta{color:var(--dim); font-size:.88rem; margin-bottom:16px}
 .btn-main{
-  display:block; width:100%; text-align:center;
+  display:block; width:100%; text-align:center; position:relative; z-index:2;
   background:linear-gradient(135deg,#2ee8d2,var(--acc) 50%,#0fb9d8);
   border-radius:14px; padding:16px; font-size:1.12rem; font-weight:800; color:#04201c;
   box-shadow:0 6px 22px var(--acc-glow); transition:transform .1s;
@@ -313,8 +313,15 @@ svg text{font-family:'Rubik',sans-serif}
   <div class="subhead">
     <div class="today-date" id="home-date"></div>
     <div style="display:flex; gap:6px; align-items:center">
-      <span style="color:var(--ghost); font-size:.68rem">v4.0</span>
+      <span style="color:var(--ghost); font-size:.68rem">v4.1</span>
       <button id="sync-chip" onclick="manualSync()">—</button>
+    </div>
+  </div>
+
+  <div id="tip-banner" style="display:none; background:linear-gradient(135deg,rgba(255,201,60,.12),rgba(20,224,200,.08)); border:1px solid rgba(255,201,60,.35); border-radius:16px; padding:13px 15px; margin-bottom:13px; font-size:.9rem; line-height:1.5">
+    <div style="display:flex; justify-content:space-between; gap:8px; align-items:flex-start">
+      <div><b style="color:var(--gold)">☀️ מהמאמן של הבוקר:</b> <span id="tip-text"></span></div>
+      <button onclick="dismissTip()" style="color:var(--ghost); font-size:1rem; flex-shrink:0">✕</button>
     </div>
   </div>
 
@@ -492,7 +499,7 @@ svg text{font-family:'Rubik',sans-serif}
     </div>
   </div>
   <div style="color:var(--ghost); font-size:.75rem; text-align:center; margin-top:6px">
-    תוכנית: ברוך שייש · גרסה 4.0 · נבנה עם קלוד 🤖
+    תוכנית: ברוך שייש · גרסה 4.1 · נבנה עם קלוד 🤖
   </div>
 </div>
 
@@ -513,7 +520,7 @@ svg text{font-family:'Rubik',sans-serif}
 
 <script>
 /* ================= קבועים ================= */
-const APP_VER='4.0';
+const APP_VER='4.1';
 const KEY='noam-gym-v2', OLDKEY='noam-gym-v1';
 let clockOfs=0; /* פער מול שעון השרת — מוגדר כאן כדי שיהיה זמין מהרגע הראשון */
 /* כל שגיאה מוצגת — כדי שנוכל לאתר תקלות בטלפון */
@@ -732,7 +739,11 @@ function maxReps(exName, excludeRid){
   return m;
 }
 
-/* התקדמות כפולה + משוב: כל הצעה מגיעה עם הסבר */
+/* התקדמות כפולה + משוב: כל הצעה מגיעה עם הסבר — מנוסח קצת אחרת בכל יום */
+function pickWhy(arr, seed){
+  let h=0; for(const c of seed+todayStr()) h=(h*31+c.charCodeAt(0))>>>0;
+  return arr[h%arr.length];
+}
 function suggestTarget(pe){
   const last=lastPerf(pe.n);
   if(!last||!last.sets.length) return null;
@@ -741,19 +752,32 @@ function suggestTarget(pe){
   const topW=Math.max(...work.map(s=>s.w));
   const hitTop=pe.hi&&work.length>=pe.sets&&work.every(s=>s.r>=pe.hi)&&topW>0;
   if(hitTop&&last.fb==='hard'){
-    return {up:false, w:topW, why:'סגרת את כל הסטים בתקרה, אבל סימנת "קשה מדי" — נבסס עוד אימון על המשקל הזה לפני שעולים'};
+    return {up:false, w:topW, why:pickWhy([
+      'סגרת את כל הסטים בתקרה — אבל סימנת "קשה מדי". נבסס עוד אימון אחד לפני הקפיצה.',
+      'המספרים אומרים לעלות, הגוף אמר "רגע". מקשיבים לגוף — עוד אימון על המשקל הזה.',
+      'כמעט שם! עוד אימון אחד של ביסוס על המשקל הזה, ואז עולים בביטחון.'], pe.n)};
   }
   if(hitTop){
-    return {up:true, w:Math.round((topW+S.settings.step)*100)/100, lo:pe.lo,
-      why:'בפעם הקודמת סגרת את כל הסטים בתקרת הטווח ('+pe.hi+' חזרות) — הגיע הזמן לעלות משקל!'};
+    return {up:true, w:Math.round((topW+S.settings.step)*100)/100, lo:pe.lo, why:pickWhy([
+      'בפעם הקודמת סגרת את כל הסטים בתקרה ('+pe.hi+' חזרות) — הגיע הזמן לעלות!',
+      'כל הסטים בטווח העליון? המשקל הקודם כבר קל עליך. קדימה 💪',
+      pe.hi+' חזרות בכל הסטים — הגוף שלך שידרג את עצמו. עכשיו תור המשקל.',
+      'שברת את התקרה בפעם שעברה — היום פותחים קומה חדשה.'], pe.n)};
   }
   if(last.fb==='easy'){
-    return {up:false, w:topW, plus:true, why:'סימנת "היה קל" — ננסה היום להוסיף חזרה או שתיים בכל סט'};
+    return {up:false, w:topW, plus:true, why:pickWhy([
+      'סימנת "היה קל" — היום ננסה להוסיף חזרה או שתיים בכל סט.',
+      'קל מדי? מצוין. עוד חזרה בכל סט ואתה בדרך לתקרה.'], pe.n)};
   }
   if(last.fb==='hard'){
-    return {up:false, w:topW, why:'סימנת "קשה מדי" בפעם הקודמת — היום נתבסס, בלי לחץ לעלות'};
+    return {up:false, w:topW, why:pickWhy([
+      'סימנת "קשה מדי" בפעם הקודמת — היום מתבססים, בלי לחץ.',
+      'אימון קשה זה חלק מהדרך. היום אותו משקל, בלי דרמות — רק לבנות ביטחון.'], pe.n)};
   }
-  return {up:false, w:topW, why:'עוד לא סגרת את כל הסטים בתקרת הטווח — היעד היום: יותר חזרות מהפעם הקודמת'};
+  return {up:false, w:topW, why:pickWhy([
+    'עוד לא סגרת את כל הסטים בתקרה — היעד היום: יותר חזרות מהפעם הקודמת.',
+    'המשחק היום: לנצח את החזרות של הפעם הקודמת, אפילו באחת.',
+    'אותו משקל, יעד אחד — לדחוף כל סט חזרה אחת קדימה.'], pe.n)};
 }
 
 /* ================= ניווט ================= */
@@ -789,7 +813,22 @@ function renderHome(){
   const thisWeek=ws.filter(h=>weekStart(h.date)===weekStart(todayStr())).length;
   $('st-week').textContent=thisWeek+'/3';
   $('st-streak').textContent=weekStreakCount();
-  renderCal(); renderRecent(); syncStatus();
+  renderCal(); renderRecent(); syncStatus(); renderTip();
+}
+/* חידוד יומי שמשימת הבוקר של קלוד כותבת לענן (רשומת tip) */
+function renderTip(){
+  const el=$('tip-banner'); if(!el) return;
+  const t=S.records['tip'];
+  const fresh=t&&!t.deleted&&t.data&&t.data.text&&t.data.date>=localYMD(new Date(Date.now()-86400000));
+  if(fresh&&S.settings.tipSeen!==t.data.date+'|'+t.data.text.slice(0,20)){
+    $('tip-text').textContent=t.data.text;
+    el.style.display='block';
+  } else el.style.display='none';
+}
+function dismissTip(){
+  const t=S.records['tip'];
+  if(t&&t.data) S.settings.tipSeen=t.data.date+'|'+t.data.text.slice(0,20);
+  save(); renderTip();
 }
 function weekStreakCount(){
   const ws=workouts(); if(!ws.length) return 0;
@@ -942,14 +981,15 @@ function renderWorkout(title){
     const lastTxt=e.lastDate?`פעם קודמת (${shortDate(e.lastDate)}): ${e.sets.filter(s=>s.prev).map(s=>`<span class="num">${s.prev.w}×${s.prev.r}</span>`).join(' · ')||'—'}`:(W.editRid?'':'אין היסטוריה — אימון ראשון!');
     let tgtHtml='';
     const whyAttr=e.tgt&&e.tgt.why?` onclick="showWhy(${ei})"`:'';
-    if(e.tgt&&e.tgt.up) tgtHtml=`<div class="target-chip"${whyAttr}>🎯 עולים משקל! היום: <span class="num">${e.tgt.w}</span> ק"ג ${e.tgt.why?'· למה? ⓘ':''}</div>`;
-    else if(e.tgt&&e.tgt.plus) tgtHtml=`<div class="target-chip beat"${whyAttr}>🎯 היום: להוסיף חזרות ${e.tgt.why?'· ⓘ':''}</div>`;
-    else if(e.tgt&&e.tgt.w>0&&e.hi) tgtHtml=`<div class="target-chip beat"${whyAttr}>🎯 לנצח את הפעם הקודמת ${e.tgt.why?'· ⓘ':''}</div>`;
+    if(e.tgt&&e.tgt.up) tgtHtml=`<div class="target-chip"${whyAttr}>🎯 עולים משקל! היום: <span class="num">${e.tgt.w}</span> ק"ג ${e.tgt.why?' ⓘ':''}</div>`;
+    else if(e.tgt&&e.tgt.plus) tgtHtml=`<div class="target-chip beat"${whyAttr}>🎯 היום: להוסיף חזרות ${e.tgt.why?' ⓘ':''}</div>`;
+    else if(e.tgt&&e.tgt.w>0&&e.hi) tgtHtml=`<div class="target-chip beat"${whyAttr}>🎯 לנצח את הפעם הקודמת ${e.tgt.why?' ⓘ':''}</div>`;
     return `<div class="excard" id="ex${ei}">
       <div class="exhead">
         <div style="flex:1">
           <div class="exname">${escH(e.n)} ${e.stalled&&!W.editRid?`<button class="stall-q" onclick="openStall(${ei})">?</button>`:''}</div>
-          <div class="extarget">יעד: ${e.planSets} סטים${e.hi?` × ${e.lo}-${e.hi}`:''} · עד כשל · מנוחה ${mmss(e.rest)}${e.side?' · <b style="color:var(--blue)">משקל לכל יד/צד</b>':''}</div>
+          <div class="extarget">יעד: ${e.planSets} סטים${e.hi?` × ${e.lo}-${e.hi}`:''} · עד כשל · מנוחה ${mmss(e.rest)}</div>
+          ${e.side?'<div style="color:var(--blue); font-size:.78rem; font-weight:700; margin-top:2px">✋ משקל לכל יד/צד</div>':''}
           ${e.coachNote?`<div class="excoach" onclick="this.classList.toggle('open')">🧢 ${escH(e.coachNote)}</div>`:''}
           ${lastTxt?`<div class="exlast">${lastTxt}</div>`:''}
           ${e.lastNote?`<div class="exlast" style="color:var(--gold)">📌 ${escH(e.lastNote)}</div>`:''}
