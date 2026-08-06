@@ -827,7 +827,7 @@ function renderTip(){
 }
 function dismissTip(){
   const t=S.records['tip'];
-  if(t&&t.data) S.settings.tipSeen=t.data.date+'|'+t.data.text.slice(0,20);
+  if(t&&t.data&&t.data.text) S.settings.tipSeen=t.data.date+'|'+t.data.text.slice(0,20);
   save(); renderTip();
 }
 function weekStreakCount(){
@@ -957,7 +957,7 @@ function editWorkout(rid){
   W={planId:h.planId, start:null, editRid:rid, date:h.date, origDur:h.dur, prs:h.prs?[...h.prs]:[],
      note:h.note||'',
      ex:h.ex.map(e=>({n:e.n, m:e.m, lo:null, hi:null, planSets:e.sets.length, rest:150, coachNote:'',
-       note:e.note||'', lastNote:'', lastDate:null, tgt:null,
+       note:e.note||'', fb:e.fb||null, lastNote:'', lastDate:null, tgt:null,
        sets:e.sets.map(s=>({w:s.w, r:s.r, t:s.t||'', done:true, prev:null}))}))};
   openWorkoutScreen((p?p.name:'אימון')+' · עריכה');
 }
@@ -987,7 +987,7 @@ function renderWorkout(title){
     return `<div class="excard" id="ex${ei}">
       <div class="exhead">
         <div style="flex:1">
-          <div class="exname">${escH(e.n)} ${e.stalled&&!W.editRid?`<button class="stall-q" onclick="openStall(${ei})">?</button>`:''}</div>
+          <div class="exname">${escH(e.n)} ${e.stalled&&!W.editRid&&Math.max(...e.sets.map(s=>s.w||0))>0?`<button class="stall-q" onclick="openStall(${ei})">?</button>`:''}</div>
           <div class="extarget">יעד: ${e.planSets} סטים${e.hi?` × ${e.lo}-${e.hi}`:''} · עד כשל · מנוחה ${mmss(e.rest)}</div>
           ${e.side?'<div style="color:var(--blue); font-size:.78rem; font-weight:700; margin-top:2px">✋ משקל לכל יד/צד</div>':''}
           ${e.coachNote?`<div class="excoach" onclick="this.classList.toggle('open')">🧢 ${escH(e.coachNote)}</div>`:''}
@@ -1098,7 +1098,7 @@ function renderFb(ei, allDone){
   const el=$('fb'+ei); if(!el) return;
   const e=W.ex[ei];
   if(!allDone||W.editRid){ el.classList.remove('show'); return; }
-  const vol=e.sets.filter(s=>s.t!=='W'&&s.done).reduce((a,s)=>a+(s.w||0)*(s.r||0),0);
+  const vol=e.sets.filter(s=>s.done&&isWork(s)).reduce((a,s)=>a+(s.w||0)*(s.r||0),0);
   let cmp='';
   if(e.prevVol>0&&vol>0){
     const d=Math.round((vol/e.prevVol-1)*100);
@@ -1136,6 +1136,7 @@ function stallChoice(ei,c){
     const drop=Math.max(0, Math.round((Math.max(...e.sets.filter(s=>s.t!=='W').map(s=>s.w||0))*0.9)/2.5)*2.5);
     e.sets.forEach((s,si)=>{ if(s.t!=='W'&&!s.done){ s.w=drop; const inp=$('w'+ei+'-'+si); if(inp) inp.value=drop; } });
     e.note=(e.note?e.note+' · ':'')+'ירדנו 10% לשבירת תקיעות';
+    const noteEl=$('note'+ei); if(noteEl) noteEl.value=e.note; /* שהתיבה לא תדרוס את ההערה */
     celebrate('🔄 המשקלים עודכנו — מטפסים מחדש!');
   }
   if(c==='snooze'||c==='continue'){
@@ -1593,9 +1594,10 @@ function peSet(i,f,v){
 }
 function peMove(i,d){ const ex=peEx(); const j=i+d; if(j<0||j>=ex.length) return; [ex[i],ex[j]]=[ex[j],ex[i]]; renderPeTabs(); }
 function peDel(i){
-  const removed=peEx().splice(i,1)[0];
+  const arr=peEx(); /* נעילה על האימון הנוכחי — שהביטול לא ישחזר לאימון אחר */
+  const removed=arr.splice(i,1)[0];
   renderPeTabs();
-  undoToast('"'+(removed.n||'תרגיל')+'" הוסר', ()=>{ peEx().splice(i,0,removed); renderPeTabs(); });
+  undoToast('"'+(removed.n||'תרגיל')+'" הוסר', ()=>{ arr.splice(i,0,removed); renderPeTabs(); });
 }
 function peAdd(){ peEx().push({n:'', m:'חזה', sets:3, lo:8, hi:12, rest:150, note:''}); renderPeTabs(); }
 function savePlanEdits(){
