@@ -150,6 +150,8 @@ input,select{font-family:inherit}
 .exbtns button{color:var(--ghost); font-size:1.05rem; padding:4px 5px}
 .exnote{width:100%; background:var(--card2); border:1px solid var(--line); border-radius:10px; color:var(--txt); font-size:16px; padding:10px; margin-top:10px; resize:none; display:none}
 .exnote.show{display:block}
+.exnote-pin{display:none; color:var(--gold); font-size:.78rem; font-weight:600; padding:7px 4px 0}
+.exnote-pin.show{display:inline-block}
 
 .sethead{display:grid; grid-template-columns:28px 1fr 1fr 48px; gap:7px; margin:12px 0 6px; align-items:center}
 .sethead div{color:var(--ghost); font-size:.68rem; text-align:center; font-weight:500}
@@ -303,7 +305,7 @@ svg text{font-family:'Rubik',sans-serif}
   <div class="subhead">
     <div class="today-date" id="home-date"></div>
     <div style="display:flex; gap:6px; align-items:center">
-      <span style="color:var(--ghost); font-size:.68rem">v4.3</span>
+      <span style="color:var(--ghost); font-size:.68rem">v4.4</span>
       <button id="sync-chip" onclick="manualSync()">—</button>
     </div>
   </div>
@@ -489,7 +491,7 @@ svg text{font-family:'Rubik',sans-serif}
     </div>
   </div>
   <div style="color:var(--ghost); font-size:.75rem; text-align:center; margin-top:6px">
-    תוכנית: ברוך שייש · גרסה 4.3 · נבנה עם קלוד 🤖
+    תוכנית: ברוך שייש · גרסה 4.4 · נבנה עם קלוד 🤖
   </div>
 </div>
 
@@ -510,7 +512,7 @@ svg text{font-family:'Rubik',sans-serif}
 
 <script>
 /* ================= קבועים ================= */
-const APP_VER='4.3';
+const APP_VER='4.4';
 const KEY='noam-gym-v2', OLDKEY='noam-gym-v1';
 let clockOfs=0; /* פער מול שעון השרת — מוגדר כאן כדי שיהיה זמין מהרגע הראשון */
 /* כל שגיאה מוצגת — כדי שנוכל לאתר תקלות בטלפון */
@@ -1037,8 +1039,9 @@ function renderWorkout(title){
         </div>
       </div>
       <div class="fb-row" id="fb${ei}"></div>
-      <textarea class="exnote" id="note${ei}" rows="2" placeholder="הערה לתרגיל — תופיע לך גם באימון הבא" oninput="W.ex[${ei}].note=this.value; saveDraft()">${escH(e.note)}</textarea>
-      <div class="sethead"><div>סט</div><div>ק"ג</div><div>חזרות</div><div></div></div>
+      <textarea class="exnote" id="note${ei}" rows="2" placeholder="הערה חד-פעמית — תופיע בתמונה למאמן ולקלוד של הבוקר" oninput="W.ex[${ei}].note=this.value; saveDraft()">${escH(e.note)}</textarea>
+      <button class="exnote-pin" id="pin${ei}" onclick="pinNote(${ei})">📌 הפוך להערה קבועה (תופיע בכל אימון)</button>
+      <div class="sethead"><div>סט</div><div>${e.kind==='body'?'':'ק"ג'}</div><div>חזרות</div><div></div></div>
       ${e.sets.map((s,si)=>setRowHtml(ei,si)).join('')}
       <button class="addset" onclick="addSet(${ei})">+ הוסף סט</button>
     </div>`;
@@ -1047,16 +1050,17 @@ function renderWorkout(title){
 }
 function setRowHtml(ei,si){
   const s=W.ex[ei].sets[si];
+  const isBody=W.ex[ei].kind==='body';
   const workNum=W.ex[ei].sets.slice(0,si+1).filter(x=>x.t!=='W').length;
   const label=s.t==='W'?'W':(s.t==='D'?'D':(s.t==='F'?'F':workNum));
   return `<div class="setrow ${s.done?'done':''}" id="row${ei}-${si}">
     <button class="setnum ${s.t?'t-'+s.t:''}" onclick="cycleType(${ei},${si})">${label}</button>
-    <div class="stepper">
+    ${isBody?`<div style="display:flex; align-items:center; justify-content:center; color:var(--ghost); font-size:.8rem">משקל גוף</div>`:`<div class="stepper">
       <button onclick="bump(${ei},${si},'w',1)">+</button>
       <input type="text" inputmode="decimal" value="${s.w||''}" placeholder="0" id="w${ei}-${si}"
         onfocus="this.select()" oninput="W.ex[${ei}].sets[${si}].w=parseFloat(this.value.replace(',','.'))||0; saveDraft()">
       <button onclick="bump(${ei},${si},'w',-1)">−</button>
-    </div>
+    </div>`}
     <div class="stepper">
       <button onclick="bump(${ei},${si},'r',1)">+</button>
       <input type="text" inputmode="numeric" pattern="[0-9]*" value="${s.r||''}" placeholder="0" id="r${ei}-${si}"
@@ -1094,7 +1098,15 @@ function bump(ei,si,f,dir){
   $((f==='w'?'w':'r')+ei+'-'+si).value=s[f==='w'?'w':'r']||'';
   saveDraft();
 }
-function toggleNote(ei){ $('note'+ei).classList.toggle('show'); }
+function toggleNote(ei){ $('note'+ei).classList.toggle('show'); const p=$('pin'+ei); if(p) p.classList.toggle('show'); }
+/* הופך הערה חד-פעמית להערת מאמן קבועה בתוכנית */
+function pinNote(ei){
+  const e=W.ex[ei]; const txt=(e.note||'').trim();
+  if(!txt){ celebrateInfo('כתוב קודם הערה בתיבה למעלה'); return; }
+  const p=plan(); let hit=false;
+  p.workouts.forEach(w=>w.ex.forEach(pe=>{ if(pe.n===e.n){ pe.note=txt; hit=true; } }));
+  if(hit){ putRecord('plan',{type:'plan', workouts:p.workouts}); e.coachNote=txt; celebrate('📌 נשמר — יופיע בכל אימון'); renderWorkout(); }
+}
 function addSet(ei){
   const e=W.ex[ei];
   const lastSet=e.sets[e.sets.length-1];
@@ -1106,11 +1118,12 @@ function toggleSet(ei,si){
   unlockAudio();
   if(!s.done){
     /* 0 שהוקלד בכוונה נשאר 0 — רק שדה ריק לוקח מהפעם הקודמת */
-    const wv=parseFloat($('w'+ei+'-'+si).value.replace(',','.'));
+    const wEl=$('w'+ei+'-'+si);
+    const wv=wEl?parseFloat(wEl.value.replace(',','.')):0; /* משקל גוף — אין שדה */
     const rv=parseInt($('r'+ei+'-'+si).value);
     s.w=Number.isNaN(wv)?((s.prev?s.prev.w:0)||0):wv;
     s.r=Number.isNaN(rv)?((s.prev?s.prev.r:0)||0):rv;
-    $('w'+ei+'-'+si).value=s.w||''; $('r'+ei+'-'+si).value=s.r||'';
+    if(wEl) wEl.value=s.w||''; $('r'+ei+'-'+si).value=s.r||'';
     s.done=true;
     if(s.t!=='W'&&s.r>0&&!W.editRid){
       /* שיא = מעל ההיסטוריה וגם מעל הסטים שכבר בוצעו באימון הזה */
@@ -1257,7 +1270,7 @@ function showGif(ei){
     <h2 style="font-size:1.1rem">${escH(e.n)}</h2>
     <div class="sub">הצורה הנכונה לביצוע</div>
     <div style="display:flex; gap:10px">
-      ${e.gif.map(g=>`<img src="${escH(g)}" alt="" style="flex:1; min-width:0; border-radius:16px; background:#fff">`).join('')}
+      ${e.gif.map(g=>`<img src="${escH(g)}" alt="" style="flex:1; min-width:0; max-width:${e.gif.length>1?'46%':'280px'}; margin:auto; border-radius:16px; background:#fff">`).join('')}
     </div>
     <div style="color:var(--ghost); font-size:.68rem; text-align:center; margin-top:8px">© Gym Visual — gymvisual.com</div>
     <button class="btn-main" style="margin-top:12px" onclick="closeModal()">סגור</button>`;
