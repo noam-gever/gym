@@ -282,16 +282,6 @@ input,select{font-family:inherit}
 .sheet .btn-sec{flex:1; background:var(--card2); border:1px solid var(--line); border-radius:14px; padding:14px; font-weight:700; text-align:center}
 .sheet .btn-go{flex:2}
 
-/* מחשבון פלטות */
-.plate-view{display:flex; align-items:center; justify-content:center; gap:3px; direction:ltr; margin:16px 0; min-height:80px}
-.plate{border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:.62rem; font-weight:800; color:#fff; writing-mode:vertical-lr}
-.plate-bar{height:10px; background:#777; width:46px; border-radius:2px}
-.plate-info{text-align:center; color:var(--dim); font-size:.9rem; margin-bottom:6px}
-.plate-info b{color:var(--txt); font-size:1.2rem}
-.plate-opts{display:flex; gap:8px; justify-content:center; margin-top:10px}
-.plate-opts button{background:var(--card2); border:1px solid var(--line); border-radius:10px; padding:8px 14px; font-size:.83rem; font-weight:600; color:var(--dim)}
-.plate-opts button.act{color:var(--acc); border-color:var(--acc)}
-
 #toast{position:fixed; top:calc(env(safe-area-inset-top) + 14px); inset-inline:16px; z-index:70;
   background:var(--card2); border:1px solid var(--gold); color:var(--gold);
   border-radius:14px; padding:14px 16px; font-weight:700; text-align:center;
@@ -313,7 +303,7 @@ svg text{font-family:'Rubik',sans-serif}
   <div class="subhead">
     <div class="today-date" id="home-date"></div>
     <div style="display:flex; gap:6px; align-items:center">
-      <span style="color:var(--ghost); font-size:.68rem">v4.1</span>
+      <span style="color:var(--ghost); font-size:.68rem">v4.2</span>
       <button id="sync-chip" onclick="manualSync()">—</button>
     </div>
   </div>
@@ -365,7 +355,7 @@ svg text{font-family:'Rubik',sans-serif}
     <button class="quit" onclick="confirmQuit()">✕</button>
     <div style="text-align:center">
       <div class="wt-name" id="w-title"></div>
-      <div class="wt-meta"><span class="num" id="w-clock">0:00</span> · <span id="w-sets">0 סטים</span><span id="top-rest" style="color:var(--acc); font-weight:700"></span></div>
+      <div class="wt-meta"><button id="pause-btn" onclick="togglePause()" style="color:var(--dim); padding:0 4px">⏸</button><span class="num" id="w-clock">0:00</span> · <span id="w-sets">0 סטים</span><span id="top-rest" style="color:var(--acc); font-weight:700"></span></div>
     </div>
     <button class="finish" onclick="finishWorkout()">סיום</button>
   </div>
@@ -499,7 +489,7 @@ svg text{font-family:'Rubik',sans-serif}
     </div>
   </div>
   <div style="color:var(--ghost); font-size:.75rem; text-align:center; margin-top:6px">
-    תוכנית: ברוך שייש · גרסה 4.1 · נבנה עם קלוד 🤖
+    תוכנית: ברוך שייש · גרסה 4.2 · נבנה עם קלוד 🤖
   </div>
 </div>
 
@@ -520,7 +510,7 @@ svg text{font-family:'Rubik',sans-serif}
 
 <script>
 /* ================= קבועים ================= */
-const APP_VER='4.1';
+const APP_VER='4.2';
 const KEY='noam-gym-v2', OLDKEY='noam-gym-v1';
 let clockOfs=0; /* פער מול שעון השרת — מוגדר כאן כדי שיהיה זמין מהרגע הראשון */
 /* כל שגיאה מוצגת — כדי שנוכל לאתר תקלות בטלפון */
@@ -538,28 +528,28 @@ const MONTHS=['ינואר','פברואר','מרץ','אפריל','מאי','יונ
 
 const DEFAULT_PLAN={workouts:[
  {id:'A', name:'חזה גב כתפיים', day:0, ex:[
-   {n:'לחיצת חזה משקולות שיפוע חיובי', m:'חזה', sets:3, lo:6, hi:10, rest:150, note:'', side:true},
-   {n:'לחיצת חזה במכונה', m:'חזה', sets:3, lo:6, hi:10, rest:150, note:''},
-   {n:'משיכת פולי עליון רחב', m:'גב', sets:3, lo:6, hi:10, rest:150, note:''},
-   {n:'חתירה כנגד מכונה באחיזה צרה', m:'גב', sets:3, lo:6, hi:10, rest:150, note:''},
-   {n:'לחיצת כתפיים במכונה', m:'כתפיים', sets:3, lo:10, hi:20, rest:150, note:''},
-   {n:'הרחקות כתף כנגד פולי תחתון', m:'כתפיים', sets:3, lo:6, hi:10, rest:150, note:'', side:true},
+   {n:'לחיצת חזה משקולות שיפוע חיובי', m:'חזה', sets:3, lo:6, hi:10, rest:90, note:'', side:true, kind:'db'},
+   {n:'לחיצת חזה במכונה', m:'חזה', sets:3, lo:6, hi:10, rest:45, note:'', kind:'pin'},
+   {n:'משיכת פולי עליון רחב', m:'גב', sets:3, lo:6, hi:10, rest:45, note:'', kind:'pin'},
+   {n:'חתירה כנגד מכונה באחיזה צרה', m:'גב', sets:3, lo:6, hi:10, rest:70, note:'', kind:'pin'},
+   {n:'לחיצת כתפיים במכונה', m:'כתפיים', sets:3, lo:10, hi:20, rest:45, note:'', kind:'pin'},
+   {n:'הרחקות כתף כנגד פולי תחתון', m:'כתפיים', sets:3, lo:6, hi:10, rest:45, note:'', side:true, kind:'pin'},
  ]},
  {id:'B', name:'ידיים רגליים ובטן', day:2, ex:[
-   {n:'כפיפות מרפקים כנגד פולי תחתון מוט', m:'יד קדמית', sets:5, lo:10, hi:15, rest:150, note:''},
-   {n:'פשיטות מרפקים כנגד פולי עליון בכבל', m:'יד אחורית', sets:5, lo:10, hi:15, rest:150, note:''},
-   {n:'לחיצת רגליים במכונה השחורה', m:'רגליים', sets:3, lo:15, hi:20, rest:150, note:''},
-   {n:'כפיפות ברכיים', m:'רגליים', sets:3, lo:8, hi:12, rest:150, note:''},
-   {n:'תאומים על מדרגה', m:'רגליים', sets:3, lo:10, hi:20, rest:150, note:''},
-   {n:'כפיפות בטן + פלאנק', m:'בטן', sets:4, lo:null, hi:null, rest:35, note:'15 כפיפות / פלאנק דקה'},
+   {n:'כפיפות מרפקים כנגד פולי תחתון מוט', m:'יד קדמית', sets:5, lo:10, hi:15, rest:45, note:'', kind:'pin'},
+   {n:'פשיטות מרפקים כנגד פולי עליון בכבל', m:'יד אחורית', sets:5, lo:10, hi:15, rest:45, note:'', kind:'pin'},
+   {n:'לחיצת רגליים במכונה השחורה', m:'רגליים', sets:3, lo:15, hi:20, rest:90, note:'', kind:'pin'},
+   {n:'כפיפות ברכיים', m:'רגליים', sets:3, lo:8, hi:12, rest:45, note:'', kind:'pin'},
+   {n:'תאומים על מדרגה', m:'רגליים', sets:3, lo:10, hi:20, rest:45, note:'', kind:'body'},
+   {n:'כפיפות בטן + פלאנק', m:'בטן', sets:4, lo:null, hi:null, rest:30, note:'סופרסט: 15 כפיפות ומיד פלאנק דקה', kind:'body'},
  ]},
  {id:'C', name:'חזה גב כתפיים', day:4, ex:[
-   {n:'לחיצת חזה משקולות שיפוע חיובי', m:'חזה', sets:3, lo:6, hi:10, rest:150, note:'', side:true},
-   {n:'לחיצת חזה במכונה', m:'חזה', sets:3, lo:6, hi:10, rest:150, note:''},
-   {n:'מתח', m:'גב', sets:3, lo:null, hi:null, rest:150, note:'מקסימום חזרות'},
-   {n:'חתירה כנגד מכונה באחיזה צרה', m:'גב', sets:3, lo:6, hi:10, rest:150, note:''},
-   {n:'לחיצת כתפיים במכונה', m:'כתפיים', sets:3, lo:10, hi:20, rest:150, note:''},
-   {n:'הרחקות כתף כנגד פולי תחתון', m:'כתפיים', sets:3, lo:6, hi:10, rest:150, note:'', side:true},
+   {n:'לחיצת חזה משקולות שיפוע חיובי', m:'חזה', sets:3, lo:6, hi:10, rest:90, note:'', side:true, kind:'db'},
+   {n:'לחיצת חזה במכונה', m:'חזה', sets:3, lo:6, hi:10, rest:45, note:'', kind:'pin'},
+   {n:'מתח', m:'גב', sets:3, lo:null, hi:null, rest:90, note:'מקסימום חזרות', kind:'body'},
+   {n:'חתירה כנגד מכונה באחיזה צרה', m:'גב', sets:3, lo:6, hi:10, rest:70, note:'', kind:'pin'},
+   {n:'לחיצת כתפיים במכונה', m:'כתפיים', sets:3, lo:10, hi:20, rest:45, note:'', kind:'pin'},
+   {n:'הרחקות כתף כנגד פולי תחתון', m:'כתפיים', sets:3, lo:6, hi:10, rest:45, note:'', side:true, kind:'pin'},
  ]}
 ]};
 
@@ -633,8 +623,25 @@ function migrate_(s){
     s.syncV=2;
     Object.keys(s.records).forEach(id=>{ if(!s.outbox.includes(id)) s.outbox.push(id); });
   }
+  /* גרסה 4.2: זמני מנוחה חדשים (מהמאמן) + סוגי משקל לכל תרגיל */
+  if(s.syncV===3){
+    s.syncV=4;
+    const p=s.records['plan'];
+    if(p&&p.data&&p.data.workouts){
+      const CONF={'לחיצת חזה משקולות שיפוע חיובי':{rest:90,kind:'db'},'לחיצת חזה במכונה':{rest:45,kind:'pin'},
+        'משיכת פולי עליון רחב':{rest:45,kind:'pin'},'חתירה כנגד מכונה באחיזה צרה':{rest:70,kind:'pin'},
+        'לחיצת כתפיים במכונה':{rest:45,kind:'pin'},'הרחקות כתף כנגד פולי תחתון':{rest:45,kind:'pin'},
+        'כפיפות מרפקים כנגד פולי תחתון מוט':{rest:45,kind:'pin'},'פשיטות מרפקים כנגד פולי עליון בכבל':{rest:45,kind:'pin'},
+        'לחיצת רגליים במכונה השחורה':{rest:90,kind:'pin'},'כפיפות ברכיים':{rest:45,kind:'pin'},
+        'תאומים על מדרגה':{rest:45,kind:'body'},'כפיפות בטן + פלאנק':{rest:30,kind:'body'},'מתח':{rest:90,kind:'body'}};
+      p.data.workouts.forEach(w=>w.ex.forEach(e=>{ const c=CONF[e.n]; if(c){ e.rest=c.rest; e.kind=c.kind; } }));
+      p.updatedAt=Date.now();
+      if(!s.outbox.includes('plan')) s.outbox.push('plan');
+    }
+    if(s.settings.rest===150) s.settings.rest=45;
+  }
   /* גרסה 4: סימון "לכל יד" בתרגילים הקיימים בתוכנית */
-  if(s.syncV!==3){
+  if(s.syncV!==3&&s.syncV!==4){
     s.syncV=3;
     const p=s.records['plan'];
     if(p&&p.data&&p.data.workouts){
@@ -941,10 +948,10 @@ function startWorkout(planId){
       const firstW=sets.length?sets[0].w:0;
       if(firstW>0){
         let half=firstW/2;
-        half=half>=10?Math.round(half/2.5)*2.5:Math.round(half*2)/2;
+        half=pe.kind==='db'?Math.max(1,Math.round(half)):(half>=10?Math.round(half/2.5)*2.5:Math.round(half*2)/2);
         sets.unshift({w:half, r:10, t:'W', done:false, prev:null});
       }
-      return {n:pe.n, m:pe.m, lo:pe.lo, hi:pe.hi, planSets:pe.sets, rest:pe.rest, coachNote:pe.note, side:pe.side,
+      return {n:pe.n, m:pe.m, lo:pe.lo, hi:pe.hi, planSets:pe.sets, rest:pe.rest, coachNote:pe.note, side:pe.side, kind:pe.kind, gif:pe.gif,
               note:'', lastNote:last?last.note:'', lastDate:last?last.date:null, tgt, sets,
               fb:null, stalled:isStalled(pe.n), calib:calibrationDue(pe.n),
               prevVol:last?last.sets.filter(isWork).reduce((a,s)=>a+s.w*s.r,0):0};
@@ -966,8 +973,21 @@ function openWorkoutScreen(title){
   $('w-note').value=W.note||'';
   go('workout');
   clearInterval(clockInt);
-  if(W.start){ clockInt=setInterval(()=>{ $('w-clock').textContent=mmss((Date.now()-W.start)/1000); },1000); reqWake(); }
-  else $('w-clock').textContent='עריכה';
+  if(W.start){ clockInt=setInterval(tickClock,1000); tickClock(); reqWake(); if(W.pausedAt) $('pause-btn').textContent='▶'; }
+  else { $('w-clock').textContent='עריכה'; $('pause-btn').style.display='none'; }
+}
+function tickClock(){
+  if(!W||!W.start) return;
+  const el=$('w-clock'); if(!el) return;
+  if(W.pausedAt){ el.textContent='⏸ '+mmss((W.pausedAt-W.start)/1000); }
+  else el.textContent=mmss((Date.now()-W.start)/1000);
+}
+/* עצירת אימון — השעון קופא, וכשממשיכים הזמן שעבר לא נספר */
+function togglePause(){
+  if(!W||!W.start) return;
+  if(W.pausedAt){ W.start+=Date.now()-W.pausedAt; W.pausedAt=null; $('pause-btn').textContent='⏸'; celebrateInfo('▶ ממשיכים!'); }
+  else { W.pausedAt=Date.now(); restStop(); $('pause-btn').textContent='▶'; celebrateInfo('⏸ האימון מושהה — קח את הזמן'); }
+  tickClock(); saveDraft();
 }
 async function reqWake(){ try{ if('wakeLock'in navigator) wakeLock=await navigator.wakeLock.request('screen'); }catch(e){} }
 document.addEventListener('visibilitychange',()=>{
@@ -992,12 +1012,11 @@ function renderWorkout(title){
           ${e.side?'<div style="color:var(--blue); font-size:.78rem; font-weight:700; margin-top:2px">✋ משקל לכל יד/צד</div>':''}
           ${e.coachNote?`<div class="excoach" onclick="this.classList.toggle('open')">🧢 ${escH(e.coachNote)}</div>`:''}
           ${lastTxt?`<div class="exlast">${lastTxt}</div>`:''}
-          ${e.lastNote?`<div class="exlast" style="color:var(--gold)">📌 ${escH(e.lastNote)}</div>`:''}
           ${e.calib&&!W.editRid?`<div class="target-chip" style="border-color:rgba(255,201,60,.4); color:var(--gold); background:rgba(255,201,60,.1)">🧪 היום סט כיול — בסט האחרון תן מקסימום חזרות!</div>`:''}
           ${tgtHtml}
         </div>
         <div class="exbtns">
-          <button onclick="openPlates(${ei})" title="מחשבון פלטות">🏋️</button>
+          ${e.gif?`<button onclick="showGif(${ei})" title="איך מבצעים">▶️</button>`:''}
           <button onclick="toggleNote(${ei})">📝</button>
         </div>
       </div>
@@ -1047,9 +1066,14 @@ function refreshRows(ei){
     btn.textContent=s.t||workNum;
   });
 }
+function stepFor(e,w,dir){
+  if(e.kind==='db') return (dir>0? w>=10 : w>10) ? 2 : 1; /* משקולות יד: עד 10 באחדות, מעל בזוגות */
+  if(e.kind==='body') return 1;
+  return S.settings.step; /* מכונת פין */
+}
 function bump(ei,si,f,dir){
   const s=W.ex[ei].sets[si];
-  if(f==='w') s.w=Math.max(0, Math.round(((s.w||0)+dir*S.settings.step)*100)/100);
+  if(f==='w') s.w=Math.max(0, Math.round(((s.w||0)+dir*stepFor(W.ex[ei],s.w||0,dir))*100)/100);
   else s.r=Math.max(0,(s.r||0)+dir);
   $((f==='w'?'w':'r')+ei+'-'+si).value=s[f==='w'?'w':'r']||'';
   saveDraft();
@@ -1210,40 +1234,16 @@ function showSummary(rid, entry){
 }
 function closeModal(){ $('modal').classList.remove('show'); document.body.style.overflow=''; }
 
-/* ================= מחשבון פלטות ================= */
-let plateBar=20, plateEi=0;
-function openPlates(ei){
-  plateEi=ei;
-  const e=W.ex[ei];
-  const firstUndone=e.sets.find(s=>!s.done)||e.sets[0];
-  renderPlates(firstUndone?firstUndone.w:0);
+/* ================= אנימציית תרגיל ================= */
+function showGif(ei){
+  const e=W.ex[ei]; if(!e.gif) return;
+  $('sheet').innerHTML=`
+    <h2 style="font-size:1.1rem">${escH(e.n)}</h2>
+    <div class="sub">הצורה הנכונה לביצוע</div>
+    <img src="${escH(e.gif)}" alt="" style="width:100%; border-radius:16px; background:#fff">
+    <button class="btn-main" style="margin-top:14px" onclick="closeModal()">סגור</button>`;
   openModal();
 }
-function renderPlates(target){
-  const PL=[{w:25,c:'#e0413b',h:76},{w:20,c:'#3968c9',h:76},{w:15,c:'#e8b83a',h:70},{w:10,c:'#3aa457',h:62},{w:5,c:'#eee',h:50},{w:2.5,c:'#888',h:40},{w:1.25,c:'#666',h:32}];
-  let side=(target-plateBar)/2, rem=side, picks=[];
-  if(side>0) PL.forEach(p=>{ while(rem>=p.w-.001){ picks.push(p); rem-=p.w; } });
-  const ok=side>=0&&rem<.001;
-  $('sheet').innerHTML=`
-    <h2>מחשבון פלטות 🏋️</h2>
-    <div class="sub">${W.ex[plateEi].n}</div>
-    <div class="plate-info">משקל יעד: <b class="num">${target}</b> ק"ג ${plateBar?`· מוט <span class="num">${plateBar}</span> ק"ג`:'· בלי מוט'}</div>
-    <div class="plate-view">
-      ${picks.slice().reverse().map(p=>`<div class="plate" style="background:${p.c}; height:${p.h}px; width:15px; color:${p.w===5?'#333':'#fff'}">${p.w}</div>`).join('')}
-      <div class="plate-bar"></div>
-      ${picks.map(p=>`<div class="plate" style="background:${p.c}; height:${p.h}px; width:15px; color:${p.w===5?'#333':'#fff'}">${p.w}</div>`).join('')}
-    </div>
-    <div class="plate-info">${ok?(picks.length?`כל צד: <b>${picks.map(p=>p.w).join(' + ')}</b>`:'רק המוט!'):`⚠️ אי אפשר להגיע בדיוק — חסר <span class="num">${rem.toFixed(2)}</span> לכל צד`}</div>
-    <div class="plate-opts">
-      ${[20,15,10,0].map(b=>`<button class="${plateBar===b?'act':''}" onclick="plateBar=${b};renderPlates(${target})">${b?'מוט '+b:'בלי מוט'}</button>`).join('')}
-    </div>
-    <div class="plate-opts" style="margin-top:8px">
-      <button onclick="renderPlates(${Math.max(0,target-2.5)})">−2.5</button>
-      <button onclick="renderPlates(${target+2.5})">+2.5</button>
-      <button onclick="closeModal()">סגור</button>
-    </div>`;
-}
-
 /* ================= טיימר מנוחה ================= */
 let restEnd=0, restInt=null, beeped=false;
 function restStart(sec){
@@ -1572,11 +1572,15 @@ function renderPeTabs(){
       </div>
       <div class="pe-grid" style="grid-template-columns:1fr 1fr 2fr">
         <div><label>מנוחה (שנ')</label><input type="text" inputmode="numeric" value="${e.rest||150}" oninput="peSet(${i},'rest',Math.max(10,parseInt(this.value)||150))"></div>
+        <div><label>סוג משקל</label><select onchange="peSet(${i},'kind',this.value)">
+          <option value="pin" ${e.kind!=='db'&&e.kind!=='body'?'selected':''}>מכונה (2.5)</option>
+          <option value="db" ${e.kind==='db'?'selected':''}>משקולות יד</option>
+          <option value="body" ${e.kind==='body'?'selected':''}>משקל גוף</option>
+        </select></div>
         <div style="display:flex; align-items:flex-end; gap:6px; padding-bottom:6px">
           <input type="checkbox" id="side${i}" ${e.side?'checked':''} onchange="peSet(${i},'side',this.checked)" style="width:20px; height:20px">
           <label for="side${i}" style="font-size:.78rem; color:var(--dim); margin:0">לכל יד/צד</label>
         </div>
-        <div></div>
       </div>
       <input class="pe-note" value="${escH(e.note||'')}" oninput="peSet(${i},'note',this.value)" placeholder="הערת מאמן (תוצג בכל אימון)">
       <div class="pe-actions">
@@ -1638,12 +1642,13 @@ async function shareCard(rid){
   let y=510;
   c.textAlign='right';
   h.ex.slice(0,8).forEach(e=>{
-    /* שם התרגיל למעלה, כל הסטים בשורה מתחת — בלי התנגשויות */
+    /* שם התרגיל + המשוב למעלה, הסטים מתחת, הערה למאמן מתחתיהם */
     c.fillStyle='#f2f0ec'; c.font='600 30px Rubik, sans-serif'; c.direction='rtl'; c.textAlign='right';
+    const fbIco=e.fb==='easy'?' 😃':e.fb==='ok'?' 😐':e.fb==='hard'?' 🥵':'';
     let name=e.n;
-    while(c.measureText(name).width>840&&name.length>3) name=name.slice(0,-2);
+    while(c.measureText(name+fbIco).width>840&&name.length>3) name=name.slice(0,-2);
     if(name!==e.n) name=name+'…';
-    c.fillText(name, 920, y);
+    c.fillText(name+fbIco, 920, y);
     const setsTxt=e.sets.filter(s=>s.t!=='W').map(s=>`${s.w}×${s.r}`).join('   ');
     c.font='700 26px Rubik, sans-serif'; c.fillStyle='#14e0c8'; c.direction='ltr'; c.textAlign='left';
     let st=setsTxt;
@@ -1651,7 +1656,20 @@ async function shareCard(rid){
     c.fillText(st, 80, y+36);
     c.direction='rtl'; c.textAlign='right';
     y+=84;
+    if(e.note){
+      c.fillStyle='#ffc93c'; c.font='500 24px Rubik, sans-serif';
+      let nt='📌 '+e.note;
+      while(c.measureText(nt).width>840&&nt.length>3) nt=nt.slice(0,-2);
+      c.fillText(nt, 920, y-14);
+      y+=38;
+    }
   });
+  if(h.note){
+    y+=6; c.fillStyle='#ffc93c'; c.font='500 26px Rubik, sans-serif'; c.textAlign='center';
+    let wn='📝 '+h.note;
+    while(c.measureText(wn).width>900&&wn.length>3) wn=wn.slice(0,-2);
+    c.fillText(wn, 500, y); y+=40; c.textAlign='right';
+  }
   /* שיאים */
   if(h.prs&&h.prs.length){
     y+=20; c.fillStyle='#ffc93c'; c.font='700 36px Rubik, sans-serif'; c.textAlign='center';
@@ -1759,7 +1777,7 @@ function renderSettings(){
   $('sync-test-out').textContent='';
 }
 function toggleSound(){ S.settings.sound=!S.settings.sound; save(); renderSettings(); unlockAudio(); if(S.settings.sound) beep(); }
-function cycleRest(){ const o=[60,90,120,150,180]; S.settings.rest=o[(o.indexOf(S.settings.rest)+1)%o.length]; save(); renderSettings(); }
+function cycleRest(){ const o=[30,45,60,90,120,150,180]; S.settings.rest=o[(o.indexOf(S.settings.rest)+1)%o.length]; save(); renderSettings(); }
 function cycleStep(){ const o=[1,2.5,5]; S.settings.step=o[(o.indexOf(S.settings.step)+1)%o.length]; save(); renderSettings(); }
 
 function backupBlob(){ return new Blob([JSON.stringify(S,null,1)],{type:'application/json'}); }
