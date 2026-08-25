@@ -1,5 +1,5 @@
 /* Service Worker — האפליקציה נפתחת גם בלי אינטרנט בחדר כושר */
-const CACHE = 'noam-gym-v45';
+const CACHE = 'noam-gym-v46';
 const CORE = ['./', './index.html', './manifest.json', './icon-180.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -21,7 +21,7 @@ self.addEventListener('fetch', e => {
   if (e.request.mode === 'navigate') {
     /* דף ראשי: רשת קודם (כדי לקבל עדכונים), מטמון אם אין אינטרנט */
     e.respondWith(
-      fetch(e.request).then(r => {
+      fetch(e.request, {cache:'no-store'}).then(r => {
         if (r.ok) { /* דף שגיאה זמני לא מרעיל את המטמון */
           const copy = r.clone();
           caches.open(CACHE).then(c => c.put('./index.html', copy));

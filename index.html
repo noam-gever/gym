@@ -305,8 +305,15 @@ svg text{font-family:'Rubik',sans-serif}
   <div class="subhead">
     <div class="today-date" id="home-date"></div>
     <div style="display:flex; gap:6px; align-items:center">
-      <span style="color:var(--ghost); font-size:.68rem">v4.5</span>
+      <span style="color:var(--ghost); font-size:.68rem">v4.6</span>
       <button id="sync-chip" onclick="manualSync()">—</button>
+    </div>
+  </div>
+
+  <div id="upd-banner" style="display:none; background:rgba(20,224,200,.1); border:1px solid var(--acc); border-radius:16px; padding:13px 15px; margin-bottom:13px; font-size:.9rem">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px">
+      <div>🚀 <b>יש גרסה חדשה!</b> <span id="upd-ver" style="color:var(--dim)"></span></div>
+      <button onclick="forceUpdate()" style="background:var(--acc); color:#04201c; font-weight:800; border-radius:10px; padding:9px 14px; flex-shrink:0">רענן עכשיו</button>
     </div>
   </div>
 
@@ -491,7 +498,7 @@ svg text{font-family:'Rubik',sans-serif}
     </div>
   </div>
   <div style="color:var(--ghost); font-size:.75rem; text-align:center; margin-top:6px">
-    תוכנית: ברוך שייש · גרסה 4.5 · נבנה עם קלוד 🤖
+    תוכנית: ברוך שייש · גרסה 4.6 · נבנה עם קלוד 🤖
   </div>
 </div>
 
@@ -512,7 +519,7 @@ svg text{font-family:'Rubik',sans-serif}
 
 <script>
 /* ================= קבועים ================= */
-const APP_VER='4.5';
+const APP_VER='4.6';
 const KEY='noam-gym-v2', OLDKEY='noam-gym-v1';
 let clockOfs=0; /* פער מול שעון השרת — מוגדר כאן כדי שיהיה זמין מהרגע הראשון */
 /* כל שגיאה מוצגת — כדי שנוכל לאתר תקלות בטלפון */
@@ -1857,7 +1864,28 @@ function wipeAll(){
 /* ================= התחלה ================= */
 renderHome(); pull(); flush(); tryResumeDraft();
 /* עבודה מלאה גם בלי אינטרנט בחדר כושר */
-if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(()=>{}); }
+/* עדכון עצמי: בכל פתיחה בודקים מול השרת אם יצאה גרסה חדשה */
+let lastUpdCheck=0;
+async function checkUpdate(){
+  if(Date.now()-lastUpdCheck<300000||!navigator.onLine) return;
+  lastUpdCheck=Date.now();
+  try{
+    const res=await fetch('index.html?u='+Date.now(),{cache:'no-store'});
+    const m=(await res.text()).match(/APP_VER='([\d.]+)'/);
+    if(m&&m[1]!==APP_VER){
+      const b=$('upd-banner'); if(b){ $('upd-ver').textContent='v'+APP_VER+' ← v'+m[1]; b.style.display='block'; }
+    }
+  }catch(e){}
+}
+async function forceUpdate(){
+  celebrateInfo('🚀 מעדכן...');
+  try{ const ks=await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); }catch(e){}
+  try{ if('serviceWorker' in navigator){ const rs=await navigator.serviceWorker.getRegistrations(); await Promise.all(rs.map(r=>r.unregister())); } }catch(e){}
+  location.replace(location.pathname+'?u='+Date.now());
+}
+checkUpdate();
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkUpdate(); });
 </script>
 </body>
 </html>
