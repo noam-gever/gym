@@ -305,7 +305,7 @@ svg text{font-family:'Rubik',sans-serif}
   <div class="subhead">
     <div class="today-date" id="home-date"></div>
     <div style="display:flex; gap:6px; align-items:center">
-      <span style="color:var(--ghost); font-size:.68rem">v4.4</span>
+      <span style="color:var(--ghost); font-size:.68rem">v4.5</span>
       <button id="sync-chip" onclick="manualSync()">—</button>
     </div>
   </div>
@@ -491,7 +491,7 @@ svg text{font-family:'Rubik',sans-serif}
     </div>
   </div>
   <div style="color:var(--ghost); font-size:.75rem; text-align:center; margin-top:6px">
-    תוכנית: ברוך שייש · גרסה 4.4 · נבנה עם קלוד 🤖
+    תוכנית: ברוך שייש · גרסה 4.5 · נבנה עם קלוד 🤖
   </div>
 </div>
 
@@ -512,7 +512,7 @@ svg text{font-family:'Rubik',sans-serif}
 
 <script>
 /* ================= קבועים ================= */
-const APP_VER='4.4';
+const APP_VER='4.5';
 const KEY='noam-gym-v2', OLDKEY='noam-gym-v1';
 let clockOfs=0; /* פער מול שעון השרת — מוגדר כאן כדי שיהיה זמין מהרגע הראשון */
 /* כל שגיאה מוצגת — כדי שנוכל לאתר תקלות בטלפון */
@@ -1270,7 +1270,7 @@ function showGif(ei){
     <h2 style="font-size:1.1rem">${escH(e.n)}</h2>
     <div class="sub">הצורה הנכונה לביצוע</div>
     <div style="display:flex; gap:10px">
-      ${e.gif.map(g=>`<img src="${escH(g)}" alt="" style="flex:1; min-width:0; max-width:${e.gif.length>1?'46%':'280px'}; margin:auto; border-radius:16px; background:#fff">`).join('')}
+      ${e.gif.map(g=>`<img src="${escH(g)}" alt="" style="flex:1; min-width:0; max-width:${e.gif.length>1?'48%':'340px'}; margin:auto; border-radius:16px; background:#fff">`).join('')}
     </div>
     <div style="color:var(--ghost); font-size:.68rem; text-align:center; margin-top:8px">© Gym Visual — gymvisual.com</div>
     <button class="btn-main" style="margin-top:12px" onclick="closeModal()">סגור</button>`;

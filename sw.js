@@ -1,5 +1,5 @@
 /* Service Worker — האפליקציה נפתחת גם בלי אינטרנט בחדר כושר */
-const CACHE = 'noam-gym-v44';
+const CACHE = 'noam-gym-v45';
 const CORE = ['./', './index.html', './manifest.json', './icon-180.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
